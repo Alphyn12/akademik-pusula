@@ -8,6 +8,19 @@ Akademik Pusula, 10 farklı akademik veritabanında aynı anda tarama yapmanız�
 
 V3 sürümü ile birlikte "Monolitik" yapıdan "Modüler (Asenkron)" yapıya geçilmiş, arama hızları `asyncio` ve `aiohttp` entegrasyonu sayesinde büyük oranda arttırılmıştır.
 
+🌐 **Canlı Uygulama:** [https://akademikpusula.streamlit.app/](https://akademikpusula.streamlit.app/)
+
+---
+
+## 🏆 Neden Avantajlı? (Rakiplerine Göre Farkı)
+
+Piyasadaki standart veritabanlarına (örn. Google Scholar) veya bireysel arama motorlarına kıyasla Akademik Pusula'nın sunduğu temel avantajlar:
+- **Tek Noktadan Tüm Literatür:** Aramalarınızı tek tek sitelere (Elsevier, IEEE, DergiPark) girerek değil, aynı anda, paralel olarak yaparsınız. 
+- **Benzersiz Sci-Hub Otomasyonu:** Ücretli makaleler için DOI tespiti yapar ve "Kilitli" olanları anında proxy kullanarak açılabilir Bypass linklerine dönüştürür.
+- **Hız ve Performans:** Asenkron mimarisi sayesinde her veritabanının kendi hızını beklemez, arama motorları birbirinden habersiz eşzamanlı olarak hedefe varır. Hız 3 katına çıkarılır.
+- **Otomatik APA (7. Sürüm) Referanslama:** Kaynağı bulduğunuz an, APA formatındaki atıf bir tıkla kopyalanmaya hazırdır. 
+- **Excel/CSV Toplu Çıktı:** Onlarca sayfada çıkan akademik yayını tablo şeklinde dışa aktararak masaüstünde kendi literatür arşivinizi anında yaratırsınız.
+
 ---
 
 ## 🔥 Yenilikler (v3.0)
@@ -107,3 +120,11 @@ Projeye dahil edilen async test altyapısı sayesinde API entegrasyonlarının �
 ```bash
 pytest tests/
 ```
+
+---
+
+## 👨‍💻 Geliştirici & Tasarım
+**Geliştiren:** Barış KIRLI  
+**Kurum:** Trakya Üniversitesi - Makine Mühendisliği Bölümü Öğrencisi  
+**İletişim/Geri Bildirim:** [bariskirli@trakya.edu.tr](mailto:bariskirli@trakya.edu.tr)
+
