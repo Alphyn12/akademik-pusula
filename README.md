@@ -2,7 +2,7 @@
   <img src="Adsız.png" alt="Akademik Pusula Logo" width="300" />
 </p>
 
-# Akademik Pusula 🧭 v3.0
+# Akademik Pusula 🧭 
 
 Akademik Pusula, 10 farklı akademik veritabanında aynı anda tarama yapmanızı, açık erişim durumlarını anında görüntülemenizi ve Sci-Hub bypass linklerine ulaşmanızı sağlayan yapay zeka destekli, modern bir arama motorudur. 
 
