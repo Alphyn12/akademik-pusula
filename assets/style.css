@@ -157,8 +157,17 @@ div[data-testid="InputInstructions"] {
     pointer-events: none;
 }
 
-/* Primary Brutalist Button */
-.stButton>button {
+/* Form Container Override */
+[data-testid="stForm"] {
+    border: none !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+}
+
+/* Primary Brutalist Button (Includes Form Submit) */
+.stButton > button, 
+[data-testid="stForm"] .stButton > button,
+[data-testid="stFormSubmitButton"] > button {
     background-color: #050505 !important;
     border: 4px solid #CCFF00 !important;
     color: #FFFFFF !important;
@@ -172,20 +181,23 @@ div[data-testid="InputInstructions"] {
     margin: 2.5rem auto 0 auto;
     text-transform: uppercase;
     font-size: 2.4rem !important;
-    box-shadow: 8px 8px 0px #00D2FF;
+    box-shadow: 8px 8px 0px #00D2FF !important;
+    width: 100% !important; /* Forces the button stretch in columns and forms */
 }
 
-.stButton>button:hover {
+.stButton > button:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
     background-color: #CCFF00 !important;
     color: #050505 !important;
     border-color: #00D2FF !important;
-    box-shadow: 12px 12px 0px #00D2FF;
+    box-shadow: 12px 12px 0px #00D2FF !important;
     transform: translate(-4px, -4px);
 }
 
-.stButton>button:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0px 0px 0px transparent;
+.stButton > button:active,
+[data-testid="stFormSubmitButton"] > button:active {
+    transform: translate(4px, 4px) !important;
+    box-shadow: 0px 0px 0px transparent !important;
 }
 
 

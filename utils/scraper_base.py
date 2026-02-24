@@ -13,16 +13,15 @@ class BaseScraper(ABC):
         self.logger = logger
         
     @abstractmethod
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         """
         Asynchronously fetches academic data from the target source.
         
         Args:
             query (str): The search term.
-            start_year (int): Minimum publication year.
-            end_year (int): Maximum publication year.
+            filters (Dict[str, Any]): Dictionary containing filters like start_year, end_year, language, max_results.
             
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries containing article metadata.
+            Dict[str, Any]: Standardized response dictionary containing status, message, and data.
         """
         pass

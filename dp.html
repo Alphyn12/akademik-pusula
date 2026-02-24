@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head prefix="og: https://ogp.me/ns#">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+    <title>Arama Doğrulama &raquo; DergiPark</title>
+    <base href="/"/>
+    <meta name="generator" content="uds"/>
+
+            
+    
+                                
+                        <link rel="stylesheet" href="/zollu/css/katex/katex.min.css">
+        <link rel="stylesheet" href="/zollu/css/pages/zollu-backend.css">
+        <link rel="stylesheet" href="/zollu/keen/vendors/custom/fullcalendar/fullcalendar.bundle.css">
+        <link rel="stylesheet" href="/zollu/keen/css/demo3/pages/custom/general/user/profile-v1.css">
+        <link rel="stylesheet" href="/zollu/keen/vendors/global/vendors.bundle.css">
+        <link rel="stylesheet" href="/zollu/keen/css/demo3/style.bundle.css">
+        <link rel="stylesheet" href="/zollu/keen/css/demo3/pages/custom/general/blog/grid-v2.css">
+        <link rel="stylesheet" href="/zollu/keen/css/demo3/pages/custom/general/blog/post.css">
+        <link rel="stylesheet" href="/zollu/keen/css/demo3/pages/custom/general/blog/list.css">
+        <link rel="stylesheet" href="/zollu/keen/vendors/custom/datatables/datatables.bundle.css">
+        <link rel="stylesheet"
+              href="/zollu/js/jbfileuploader/lib/jquery-file-upload/css/jquery.fileupload.css">
+        <link rel="stylesheet"
+              href="/zollu/js/jbfileuploader/lib/jquery-file-upload/css/jquery.fileupload-ui.css">
+        <link rel="stylesheet" href="/zollu/js/jbfileuploader/css/jbfileupload.css">
+        <link rel="stylesheet" href="/zollu/css/site.css">
+        <link rel="stylesheet" href="/zollu/css/pages/home.css">
+        <link rel="stylesheet" href="/zollu/css/select2/select2.min.css">
+        <link rel="stylesheet" href="/zollu/css/select2/select2-bootstrap.min.css">
+        <link rel="stylesheet" href="/zollu/css/pages/feedback.css">
+        <link rel="stylesheet" href="/zollu/css/pages/user_project_modal.css">
+        <link rel="stylesheet" href="/zollu/css/pages/picker/nano.min.css">
+    
+
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.google.com">
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.google.com.tr">
+    <link rel="preconnect" href="https://www.google.com.tr" crossorigin>
+    <link rel="dns-prefetch" href="https://stats.g.doubleclick.net">
+    <link rel="preconnect" href="https://stats.g.doubleclick.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="http://fonts.googleapis.com">
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+
+    <script type="text/javascript">
+        const current_language = 'tr';
+
+        function changeLocale(langCode) {
+            window.location.href = $('#link-alternate-' + langCode).attr('href');
+        }
+    </script>
+
+    <script type="text/javascript" src="/zollu/js/zollu_user_session_info.js"></script>
+
+    <script type="text/javascript" src="/tr/dp-feature-data.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-694ZECXSSZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+        gtag('config', 'G-694ZECXSSZ');
+        let dpUserCookie = getDpUserCookie();
+        if (dpUserCookie !== undefined && dpUserCookie !== null && (userId = dpUserCookie.user_id) !== null) {
+            gtag('set', {'user_id': userId});
+        }
+    </script>
+</head>
+
+
+<body class="kt-page--fixed kt-subheader--enabled kt-subheader--transparent zollu zollu-padded "
+      >
+
+        
+    
+
+    
+    
+
+<nav id="header"
+     class="navbar fixed-top navbar-fixed-top navbar-expand-lg navbar-light scrolled ">
+        <div class="kt-header" style="width: 100%;padding: 8px 0;">
+        <div class="kt-header__top" style="height: inherit;">
+            <div class="kt-container" id="header-container">
+                                <div id="powered-by">
+                                                            <a class="navbar-brand" href="//dergipark.org.tr/tr/">
+                        <img src="/zollu/images/dergipark_header.png"
+                             alt="DergiPark logo"/>
+                    </a>
+                </div>
+
+
+                <a href="/tr/user/notification"
+                   class="no-notification hide d-none "
+                   id="mobile-notification-count-wrapper">
+                    <i class="flaticon2-notification" id="mobile-notification-icon"></i>
+                    <span class="kt-badge" id="mobile-notification-badge"></span>
+                </a>
+
+                <button class="navbar-toggler collapsed" type="button" data-toggle="collapse"
+                        data-target="#navbarToggler"
+                        aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+                    <span>&nbsp;</span>
+                    <span>&nbsp;</span>
+                    <span>&nbsp;</span>
+                </button>
+
+                <div class="collapse navbar-collapse"
+                     id="navbarToggler">
+                                            <ul class="navbar-nav  mr-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle color-black" href="#" id="aboutDropDown"
+                                   data-toggle="dropdown" aria-haspopup="false"
+                                   aria-expanded="false">Hakkında</a>
+                                <div class="dropdown-menu rounded-0" aria-labelledby="aboutDropDown">
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/page/about">Hakkında</a>
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/trends">Trendler</a>
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/page/doi-hizmeti">DOI Hizmeti</a>
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/subjects">Konular</a>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link color-black"
+                                   href="/tr/search?section=journal">
+                                    Dergiler
+                                </a>
+                            </li>
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle color-black"
+                                   href="/tr/search?section=publisher"
+                                   id="publisherTypeDropDown" data-toggle="dropdown" aria-haspopup="false"
+                                   aria-expanded="false">Yayıncılar</a>
+                                <div class="dropdown-menu rounded-0" aria-labelledby="publisherTypeDropDown">
+                                    <a class="dropdown-item"
+                                       href="/tr/search?section=publisher">Tümü</a>
+                                    <div class="dropdown-divider"></div>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=6">Üniversite</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=7">Kamu</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=8">Dernek</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=9">Vakıf</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=11">Meslek Odası</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=18">Şahıs</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=19">Sendika</a>
+                                                                            <a class="dropdown-item"
+                                           href="/tr/search?section=publisher&amp;filter%5BpublisherType.id%5D%5B0%5D=12">Firma</a>
+                                                                    </div>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link color-black"
+                                   href="/tr/search?section=user">
+                                    Araştırmacılar
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link color-black" href="/tr/journal-wizard">
+                                    Dergi Sihirbazı
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link color-black" href="https://confluence.ulakbim.gov.tr/display/DYM"
+                                   target="_blank">Yardım</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle color-black" href="javascript:"
+                                   id="announcementsDropDown" data-toggle="dropdown" aria-haspopup="false"
+                                   aria-expanded="false">Duyurular</a>
+                                <div class="dropdown-menu rounded-0" aria-labelledby="announcementsDropDown">
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/announcement">Geliştirmeler
+                                        <span id="total_active_announcement"
+                                              class="badge badge-dergipark kt-margin-l-5 kt-font-bold kt-hidden"></span></a>
+                                    <a class="dropdown-item"
+                                       href="/tr/pub/page/yol-haritasi">Yol Haritası</a>
+                                </div>
+                            </li>
+                        </ul>
+                    
+                    <div >
+                        <ul class="navbar-nav ml-auto">
+                                                            <li class="nav-item hide d-none "
+                                    id="header-user-notification">
+                                    <a id="user-notification-count" class="nav-link"
+                                       href="/tr/user/notification"><span
+                                                class="flaticon2-notification"></span><label
+                                                id="notification-count-aria-label"></label></a>
+                                </li>
+                                                                                        <li class="nav-item dropdown language_selector">
+                                    <a class="nav-link dropdown-toggle" id="langDropDown" aria-haspopup="true"
+                                       aria-expanded="false" data-toggle="dropdown" href="#" style="color: black">
+                                        Türkçe                                        <span class="caret"></span></a>
+                                    <div class="dropdown-menu rounded-0 dropdown-menu-right"
+                                         aria-labelledby="langDropDown">
+                                                                                                                                <a class="dropdown-item" href="/tr/search/verification">
+                                                Türkçe
+                                            </a>
+                                                                                                                                <a class="dropdown-item" href="/en/search/verification">
+                                                İngilizce
+                                            </a>
+                                                                            </div>
+                                </li>
+                                                                                        <li class="nav-item dropdown hide d-none" id="header-user-box-user-menu">
+                                    <a class="nav-link dropdown-toggle color-black" href="#" id="userDropDown"
+                                       data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+                                        <span id="userDropDown-user-avatar"></span>
+                                        <span id="userDropDown-user-name"></span>
+                                        <span id="userDropDown-user-badge"></span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right rounded-0"
+                                         aria-labelledby="userDropDown">
+                                        <a class="dropdown-item color-dergipark d-none"
+                                           href="//dergipark.org.tr/tr/admin/panel"
+                                           id="header-dashboard-item">
+                                            <i class="icon-wrench symbol flaticon-grid-menu mr-1 mt-1 pr-1 color-dergipark"></i> Yönetici Paneli
+                                        </a>
+
+                                        <a class="dropdown-item"
+                                           href="//dergipark.org.tr/tr/user/panel"
+                                           id="header-user-panel-item">
+                                            <i class="icon-wrench symbol flaticon-grid-menu mr-1 mt-1 pr-1"></i> Kullanıcı Paneli
+                                        </a>
+
+                                        <a class="dropdown-item d-none"
+                                           href="//dergipark.org.tr/tr/user/publisher/panel"
+                                           id="header-user-coordinator-panel-item">
+                                            <i class="icon-wrench symbol flaticon-grid-menu mr-1 mt-1 pr-1"></i> Bilimsel Yayın Koordinatörü Paneli
+                                        </a>
+
+                                        <a class="dropdown-item"
+                                           href="/tr/journal/my">
+                                            <i class="icon-docs symbol flaticon2-open-text-book mr-1 mt-1 pr-1"></i> Dergilerim
+                                        </a>
+
+                                        <a class="dropdown-item d-none"
+                                           href="//dergipark.org.tr/tr/user-project"
+                                           id="header-user-project-item">
+                                            <i class="icon-rocket symbol flaticon-folder-4 mr-1 mt-1 pr-1"></i> Araştırmalarım
+                                        </a>
+
+                                        <a class="dropdown-item d-none" id="menu-follower-item"
+                                           href="//dergipark.org.tr/tr/user/user-followers">
+                                            <i class="symbol flaticon2-speaker mr-1 mt-1 pr-1"></i> Takiplerim
+                                        </a>
+
+                                        <a class="dropdown-item" href="#" id="header-user-box-profile-link">
+                                            <i class="icon-user symbol flaticon2-calendar-3 mr-1 mt-1 pr-1"></i> Profil
+                                        </a>
+
+                                        <div class="dropdown-divider"></div>
+
+                                        <a class="dropdown-item" href="https://dergipark.org.tr/tr/logout">
+                                            <i class="icon-logout symbol flaticon2-lock mr-1 mt-1 pr-1"></i> Çıkış
+                                        </a>
+                                    </div>
+                                </li>
+                                <li class="nav-item hide d-none" id="header-user-box-guest-menu">
+                                    <a class="nav-link color-black"
+                                       href="https://dergipark.org.tr/tr/login">Giriş</a>
+                                </li>
+                                                    </ul>
+                                                    <script type="text/javascript">
+                                function showUserBoxBlock(elemId) {
+                                    document.getElementById(elemId).className =
+                                        document.getElementById(elemId).className.replace(/d-none/, '');
+                                    document.getElementById(elemId).className =
+                                        document.getElementById(elemId).className.replace(/hide/, '');
+                                }
+
+                                if (isUserLoggedIn()) {
+
+                                    // Substitute user data
+                                    let userAvatar = getUserAvatar();
+
+                                    document.getElementById('userDropDown-user-name').innerHTML = getUserFullNameFormatted();
+                                    document.getElementById('header-user-box-profile-link').setAttribute('href', getUserProfileLink());
+
+                                    // user dropdown alanındaki rozet kontrolü
+                                    if (isApproved()) {
+                                        document.getElementById('userDropDown-user-badge').innerHTML = "<img style='margin-top: -2px;' src='/zollu/images/dergipark-verified-badge.svg' width='20' height='20'/>";
+                                    }
+
+                                    if (userAvatar.length === 0) {
+                                        userAvatar = '/zollu/images/default-avatar.png';
+                                    }
+
+                                    document.getElementById('userDropDown-user-avatar').innerHTML = '<img src="' + userAvatar + '" onerror="this.onerror=null;this.src=\'/zollu/images/default-avatar.png\';">';
+
+                                    // User menu ready, it's show time!
+                                    showUserBoxBlock('header-user-box-user-menu');
+                                    showUserBoxBlock('header-user-notification');
+                                    showUserBoxBlock('mobile-notification-count-wrapper');
+
+                                    const userInfo = getUserInfo();
+                                    if (canUseFollowerFeature(userInfo.username)) {
+                                        document.getElementById('menu-follower-item').classList.remove("d-none");
+                                        document.getElementById('header-user-project-item').classList.remove("d-none");
+                                    }
+                                    if (userInfo.is_admin == 1) {
+                                        document.getElementById('header-dashboard-item').classList.remove("d-none");
+                                    }
+                                } else {
+                                    // User is not logged in, display guest block right away!
+                                    showUserBoxBlock('header-user-box-guest-menu');
+                                }
+
+                                var userDropDownElement = document.getElementById("userDropDown");
+                                var userNavbar = document.getElementById("navbarToggler");
+                                userDropDownElement.addEventListener('click', function () {
+                                    if (!document.getElementById('header-user-box-user-menu').classList.contains('show')) {
+                                        userNavbar.classList.add('sensitive-height');
+                                    } else {
+                                        userNavbar.classList.remove('sensitive-height');
+                                    }
+                                });
+                                document.querySelector('[data-target="#navbarToggler"]').addEventListener('click', function () {
+                                    if (document.getElementById('header-user-box-user-menu').classList.contains('show')) {
+                                        userNavbar.classList.remove('sensitive-height');
+                                    }
+                                });
+                            </script>
+                                            </div>
+                </div>
+                            </div>
+        </div>
+    </div>
+    </nav>        <div id="body-push-down">
+            <div class="kt-grid kt-grid--hor kt-grid--root">
+                <div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--ver kt-page">
+                    <div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor kt-wrapper" id="kt_wrapper">
+                        <div class="kt-container  kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor kt-grid--stretch"
+                             id="kt_padder">
+                            <div class="kt-body kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor kt-grid--stretch"
+                                 id="kt_body">
+                                <div class="kt-content kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor"
+                                     id="kt_content">
+
+                                                                            <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+                                            <div class="kt-container ">
+                                                <div class="kt-subheader__main">
+                                                                                                            <h3 class="kt-subheader__title"></h3>
+                                                    
+                                                    
+                                                    
+                                                </div>
+                                                <div class="kt-subheader__toolbar">
+                                                    <div class="kt-subheader__wrapper">
+                                                                                                            </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    
+                                    <div class="kt-container  kt-grid__item kt-grid__item--fluid">
+                                        <div style="display:none;">
+    </div>
+
+<div id="dp-flash-container"></div>
+                                            <div class="kt-portlet" style="margin-top: -30px;">
+        <div class="kt-portlet__head kt-portlet__head--lg kt-portlet__head--break-sm">
+            <div class="kt-portlet__head-label">
+                <h4 class="kt-portlet__head-title">Aramaya devam edebilmek için lütfen gerçek kişi olduğunuzu doğrulayınız.</h4>
+            </div>
+        </div>
+        <form name="search_verification"        method="post" id="verification_form">
+        <div class="kt-portlet__body d-flex justify-content-center">
+            <div class="form-group">
+                    <script src='https://challenges.cloudflare.com/turnstile/v0/api.js' async defer></script>
+    <div class="cf-turnstile"
+         data-sitekey="0x4AAAAAAB1i-4iNnWG1Enwf"
+         data-theme="light" data-size="normal"
+         data-language="tr"
+         data-callback="turnstileCallbackSuccess"
+         data-error-callback="turnstileCallbackError"
+         data-expired-callback="turnstileCallbackExpired"
+    ></div>
+
+                
+            </div>
+            <div class="form-group">
+                <button id="submit_form" class="btn btn-primary btn-bold kt-hidden" type="submit">
+                    <i class="fa fa-check" aria-hidden="true"></i> Devam Et
+                </button>
+            </div>
+        </div>
+        <input type="hidden" id="search_verification__token" name="search_verification[_token]" data-controller="csrf-protection" value="ff6308f4e43178edfb4862cbeea63f58._5Peiyap-4S1K15Sc3j8FVhZroZ4X2fIag_2ht_D5dc.ltK82VXhvNTPZ2pmJh6LXzULmNJOEhC5G0OYsu6Uh5yF55f6QvCY_cEdOQ" /></form>
+    </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+<!-- begin:: Footer -->
+<footer class="kt-footer kt-grid__item" id="page-footer" aria-label="DergiPark altbilgi menüsü">
+    <div class="kt-container">
+                    <div class="kt-footer__top">
+                <div class="row footer-section-layout">
+                    <div class="col-lg-5">
+                        <div class="kt-footer__section">
+                            <div class="kt-footer__title">
+                                <img src="/zollu/images/agreement-dergipark-logo.png" width="210"
+                                     alt="DergiPark logo">
+                            </div>
+                            <div class="kt-footer__about">
+                                <p>TÜBİTAK ULAKBİM tarafından bilime ve araştırmacılara sunulan bir hizmettir.</p>
+                            </div>
+                            <div class="kt-padding-t-30">
+                                                                    <a href="https://ulakbim.tubitak.gov.tr/" target="_blank" aria-label="Türkiye Cumhuriyeti Sanayi ve Teknoloji Bakanlığı bağlantısı">
+                                        <img src="/zollu/images/stb-ulakbim-dikey-tr.png" class="corporate-logo corporate-logo-sanayi" alt="Türkiye Cumhuriyeti Sanayi ve Teknoloji Bakanlığı logosu">
+                                    </a>
+                                                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="kt-footer__section">
+                            <h3 class="kt-footer__title">
+                                Hızlı Erişim
+                            </h3>
+                            <div class="col">
+                                <ul class="kt-footer__nav">
+                                    <li>
+                                        <a href="//dergipark.org.tr/tr/pub/explore/journals"
+                                           class="kt-link kt-link--dark">Dergiler</a>
+                                    </li>
+                                    <li>
+                                        <a href="//dergipark.org.tr/tr/pub/subjects"
+                                           class="kt-link kt-link--dark">Konular</a>
+                                    </li>
+                                    <li>
+                                        <a href="//dergipark.org.tr/tr/pub/page/egitim-dokumanlari"
+                                           class="kt-link kt-link--dark">Eğitimler ve Kullanım Videoları</a>
+                                    </li>
+                                    <li>
+                                        <a href="//dergipark.org.tr/tr/pub/page/faq"
+                                           class="kt-link kt-link--dark">SSS</a>
+                                    </li>
+                                    <li>
+                                        <a href="//dergipark.org.tr/tr/pub/page/iletisim"
+                                           class="kt-link v">İletişim</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="/tr/pub/privacy-terms"
+                                           class="kt-link v">KVKK</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="/tr/mobil"
+                                           class="kt-link v">Mobil Uygulamalarımız</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="kt-footer__section">
+                            <div class="kt-footer__content_nav mb-3">
+                                <div class="kt-footer__title mb-3">
+                                    Mobil Uygulamalarımız
+                                </div>
+                                <div class="google-play-badge">
+    <a href="https://play.google.com/store/apps/details?id=tr.org.dergipark.mobile&pcampaignid=web_share"><img src="/zollu/images/google-play-dp-badge-tr.png" width=170></a>
+</div>
+<div>
+    <a href="https://apps.apple.com/us/app/dergipark-akademik/id6462056500?itsct=apps_box_link&itscg=30200"><img src="/zollu/images/app-store-dp-badge-tr.png" width=170></a>
+</div>
+                            </div>
+                            <div class="kt-footer__title mb-0">
+                                DergiPark&#039;ı Takip Edin
+                            </div>
+                            <div class="kt-footer__social footer-section-social-media">
+
+                                <ul class="kt-footer__social-nav">
+                                                                            <li aria-label="facebook">
+                                            <a href="https://facebook.com/dergipark"><i
+                                                        class="flaticon-facebook-logo-button fa-3x"
+                                                        aria-hidden="true"></i></a>
+                                        </li>
+                                                                                                                <li aria-label="twitter">
+                                            <a href="https://twitter.com/dergipark">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="43" height="53">
+                                                    <ellipse stroke="null" ry="18.99283" rx="18.99283" id="svg_2"
+                                                             cy="24.78058" cx="21.5" fill="#676885"></ellipse>
+                                                    <path stroke="null"
+                                                          d="m27.31766,15.63699l3.1021,0l-6.77733,7.74638l7.97327,10.54079l-6.24321,0l-4.88956,-6.39311l-5.59494,6.39311l-3.10414,0l7.24904,-8.28552l-7.64858,-10.00165l6.40128,0l4.4199,5.84338l5.11218,-5.84338zm-1.08886,16.43023l1.71911,0l-11.09627,-14.67082l-1.84449,0l11.22165,14.67082z"
+                                                          fill-rule="nonzero" fill="#e8e8ef"></path>
+                                                </svg>
+                                            </a>
+                                        </li>
+                                                                                                                <li aria-label="instagram">
+                                            <a href="https://www.instagram.com/dergipark"><i
+                                                        class="flaticon-instagram-logo fa-3x"
+                                                        aria-hidden="true"></i></a>
+                                        </li>
+                                                                    </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        
+        <div class="kt-footer__bottom">
+            <div class="kt-footer__copyright">
+                                    ULAKBİM Dergi Sistemleri&nbsp;&copy; 2026 Tüm Hakları Saklıdır.
+                
+                            </div>
+        </div>
+    </div>
+</footer>
+<!-- end:: Footer -->
+
+
+    
+
+
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+    <script>
+        WebFont.load({
+            google: {
+                "families": [
+                    "Poppins:300,400,500,600,700"]
+            },
+            active: function () {
+                sessionStorage.fonts = true;
+            }
+        });
+    </script>
+        <script src="/zollu/js/jquery.min.js"></script>
+    <script src="/zollu/keen/vendors/global/vendors.bundle.js"></script>
+    <script src="/zollu/keen/js/demo3/scripts.bundle.js"></script>
+    <script src="/zollu/keen/vendors/custom/datatables/datatables.bundle.js"></script>
+    <script src="/zollu/js/katex/katex.min.js"></script>
+    <script src="/zollu/js/katex/auto-render.min.js"></script>
+    <script src="/zollu/js/flashbag.js"></script>
+    <script src="/zollu/js/navbar-top.js"></script>
+    <script src="/zollu/bundles/fosjsrouting/js/router.js"></script>
+    <script src="/zollu/bundles/jbfileuploader/lib/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
+    <script src="/zollu/js/jbfileuploader/lib/jquery-file-upload/js/jquery.iframe-transport.js"></script>
+    <script src="/zollu/js/jbfileuploader/lib/jquery-file-upload/js/jquery.fileupload.js"></script>
+    <script src="/zollu/js/jbfileuploader/js/jbfileupload.js"></script>
+    <script src="/zollu/js/jbfileuploader/lib/jcrop/js/jquery.Jcrop.js"></script>
+    <script src="/zollu/js/jquery-ui.min.js"></script>
+    <script src="/zollu/js/pages/zollu-backend.js"></script>
+    <script src="/zollu/js/select2/select2.min.js"></script>
+    <script src="/zollu/bundles/ojscore/js/select2_sortable.js"></script>
+    <script src="/zollu/bundles/ojscore/js/remote_selection.js"></script>
+    <script src="/zollu/bundles/ojscore/js/ucfirst.js"></script>
+    <script src="/zollu/bundles/bazingajstranslation/js/translator.min.js"></script>
+    <script src="/zollu/js/common.js"></script>
+    <script src="/zollu/js/format-user-name.js"></script>
+    <script src="/zollu/js/diplab.js"></script>
+    <script src="/zollu/bundles/ojscore/js/alert_util.js"></script>
+    <script src="/zollu/js/chartjs-plugin-labels.js"></script>
+    <script src="/zollu/js/multiple_mail.js"></script>
+    <script src="/zollu/bundles/ojscore/js/mask_platforms.js"></script>
+    <script src="/zollu/js/confirmation.js"></script>
+    <script src="/zollu/js/prevent-double-submit.js"></script>
+    <script src="/tr/pub/translations?locale=tr"></script>
+    <script src="/zollu/js/subject/subject_selector.js"></script>
+    <script src="/zollu/js/pages/article/zollu_star.js"></script>
+    <script src="/zollu/js/pages/picker/pickr.min.js"></script>
+    <script src="/pub/js/routing?callback=fos.Router.setData&amp;lang=tr"></script>
+
+    <script type="text/javascript" src="/zollu/js/copy_clipboard.js"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+                 inlineMath: [['$','$'], ['\\(','\\)']],
+                 ignoreClass: "no-latex",
+                 processClass: "latex"
+            },
+            displayAlign: "center"
+        });
+    </script>
+    <script type="text/javascript" src="/zollu/js/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    <script>
+        (function() {
+
+            function showFallbackButton() {
+                document.getElementById('submit_form').classList.remove('kt-hidden');
+            }
+
+            window.turnstileCallbackSuccess = function (token) {
+                try {
+
+                   document.getElementById('verification_form').submit();
+                    swal.fire({
+                        title: 'Doğrulama yapıldı. Arama sayfasına yönlendiriliyorsunuz...',
+                        type: 'info',
+                        onOpen: function() {
+                            swal.showLoading();
+                        }
+                    });
+
+                }catch (error){
+                    showFallbackButton();
+                }
+            }
+
+            window.turnstileCallbackError = function(error) {
+                showFallbackButton();
+            };
+
+            window.turnstileCallbackExpired = function() {
+                showFallbackButton();
+            };
+
+        })();
+    </script>
+</body>
+
+</html>

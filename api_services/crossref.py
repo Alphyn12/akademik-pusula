@@ -3,14 +3,18 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
 from utils.scraper_base import BaseScraper
+import asyncio
 
 class CrossrefScraper(BaseScraper):
     def __init__(self):
         super().__init__("Crossref")
         
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            start_year = filters.get('start_year', 1990)
+            end_year = filters.get('end_year', 2026)
+            
             url = f"https://api.crossref.org/works?query.title={urllib.parse.quote(query)}&filter=from-pub-date:{start_year},until-pub-date:{end_year}&rows=20"
             headers = {'User-Agent': 'AkademikPusula/3.0 (mailto:engineering@example.com)'}
             
@@ -55,6 +59,24 @@ class CrossrefScraper(BaseScraper):
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing crossref item: {item_e}")
                                 continue
+            return {
+                "source": self.name,
+                "status": "success",
+                "message": "",
+                "data": results
+            }
+        except asyncio.TimeoutError:
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": "İstek zaman aşımına uğradı.",
+                "data": []
+            }
         except Exception as e:
             self.logger.error(f"Crossref Error: {str(e)}")
-        return results
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }

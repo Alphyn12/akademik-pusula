@@ -3,14 +3,18 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
 from utils.scraper_base import BaseScraper
+import asyncio
 
 class TRDizinScraper(BaseScraper):
     def __init__(self):
         super().__init__("TR Kaynaklı / TR Dizin")
         
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            start_year = filters.get('start_year', 1990)
+            end_year = filters.get('end_year', 2026)
+            
             url = f"https://api.crossref.org/works?query.title={urllib.parse.quote(query)}&query.affiliation=turkey&rows=15"
             headers = {'User-Agent': 'MakalePusulas/3.0 (mailto:engineering@example.com)'}
             
@@ -62,9 +66,24 @@ class TRDizinScraper(BaseScraper):
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing tr dizin item: {item_e}")
                                 continue
+            return {
+                "source": self.name,
+                "status": "success",
+                "message": "",
+                "data": results
+            }
         except asyncio.TimeoutError:
-            self.logger.warning("TR Dizin request timed out.")
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": "İstek zaman aşımına uğradı.",
+                "data": []
+            }
         except Exception as e:
             self.logger.error(f"TR Dizin Error: {str(e)}")
-            
-        return results
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }

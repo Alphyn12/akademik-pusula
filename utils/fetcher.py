@@ -1,7 +1,7 @@
 import asyncio
 from typing import List, Dict, Any
 
-from api_services.scholar import ScholarScraper
+from api_services.openalex import OpenAlexScraper
 from api_services.crossref import CrossrefScraper
 from api_services.arxiv import ArxivScraper
 from api_services.dergipark import DergiParkScraper
@@ -14,7 +14,7 @@ from api_services.asme import ASMEScraper
 
 # Mapping of source names to their respective scraper classes
 scraper_map = {
-    "Google Scholar": ScholarScraper,
+    "OpenAlex (Global)": OpenAlexScraper,
     "Crossref": CrossrefScraper,
     "arXiv": ArxivScraper,
     "DergiPark": DergiParkScraper,
@@ -26,9 +26,11 @@ scraper_map = {
     "ASME": ASMEScraper
 }
 
-async def fetch_all_sources(sources: List[str], query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+async def fetch_all_sources(sources: List[str], query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
     """
     Asynchronously fetch results from all selected sources.
+    Returns a dictionary containing 'results' (the aggregated list of articles)
+    and 'errors' (a list of error dictionaries for UI display).
     """
     tasks = []
     
@@ -37,17 +39,35 @@ async def fetch_all_sources(sources: List[str], query: str, start_year: int, end
         scraper_class = scraper_map.get(source_name)
         if scraper_class:
             scraper = scraper_class()
-            coro = scraper.fetch(query, start_year, end_year)
+            coro = scraper.fetch(query, filters)
             task = asyncio.wait_for(coro, timeout=40.0)
             tasks.append(task)
             
     # Gather all results concurrently
     gathered_results = await asyncio.gather(*tasks, return_exceptions=True)
     
-    all_results = []
-    for result in gathered_results:
-        # Ignore exceptions from failed scrapers (they log themselves)
-        if isinstance(result, list):
-            all_results.extend(result)
+    aggregated_results = []
+    errors = []
+    
+    for idx, result in enumerate(gathered_results):
+        source_name = sources[idx] if idx < len(sources) else "Bilinmeyen Kaynak"
+        if isinstance(result, Exception):
+            # A timeout or unhandled exception directly from the scraper
+            errors.append({
+                "source": source_name,
+                "status": "error",
+                "message": f"Zaman aşımı veya beklenmeyen hata: {str(result)}"
+            })
+        elif isinstance(result, dict):
+            # Standardized response
+            if result.get("status") == "error":
+                errors.append(result)
+            elif result.get("status") == "success":
+                data = result.get("data", [])
+                if isinstance(data, list):
+                    aggregated_results.extend(data)
+        elif isinstance(result, list):
+            # Backward compatibility for scrapers not yet updated
+            aggregated_results.extend(result)
             
-    return all_results
+    return {"results": aggregated_results, "errors": errors}

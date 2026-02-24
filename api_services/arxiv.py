@@ -3,14 +3,18 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
 from utils.scraper_base import BaseScraper
+import asyncio
 
 class ArxivScraper(BaseScraper):
     def __init__(self):
         super().__init__("arXiv")
         
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            start_year = filters.get('start_year', 1990)
+            end_year = filters.get('end_year', 2026)
+            
             encoded_query = urllib.parse.quote(query)
             url = f"http://export.arxiv.org/api/query?search_query=ti:{encoded_query}+OR+abs:{encoded_query}&start=0&max_results=20"
             
@@ -42,6 +46,24 @@ class ArxivScraper(BaseScraper):
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing arxiv item: {item_e}")
                                 continue
+            return {
+                "source": self.name,
+                "status": "success",
+                "message": "",
+                "data": results
+            }
+        except asyncio.TimeoutError:
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": "İstek zaman aşımına uğradı.",
+                "data": []
+            }
         except Exception as e:
             self.logger.error(f"arXiv Error: {str(e)}")
-        return results
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }

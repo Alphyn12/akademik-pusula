@@ -3,18 +3,27 @@ import urllib.parse
 from typing import List, Dict, Any
 import streamlit as st
 from utils.scraper_base import BaseScraper
+import asyncio
 
 class IEEEScraper(BaseScraper):
     def __init__(self):
         super().__init__("IEEE Xplore")
         
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            start_year = filters.get('start_year', 1990)
+            end_year = filters.get('end_year', 2026)
+            
             if "ieee" in st.secrets and "api_key" in st.secrets["ieee"]:
                 api_key = st.secrets["ieee"]["api_key"]
             else:
-                return results
+                return {
+                    "source": self.name,
+                    "status": "error",
+                    "message": "IEEE API Key (.streamlit/secrets.toml) dosyasına tanımlanmamış.",
+                    "data": []
+                }
                 
             url = f"http://ieeexploreapi.ieee.org/api/v1/search/articles?querytext={urllib.parse.quote(query)}&apikey={api_key}&max_records=15"
             
@@ -57,9 +66,31 @@ class IEEEScraper(BaseScraper):
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing ieee item: {item_e}")
                                 continue
+                    elif response.status == 401 or response.status == 403:
+                         return {
+                            "source": self.name,
+                            "status": "error",
+                            "message": "IEEE API Key geçersiz veya süresi dolmuş. Yetkilendirme hatası.",
+                            "data": []
+                        }
+            return {
+                "source": self.name,
+                "status": "success",
+                "message": "",
+                "data": results
+            }
         except asyncio.TimeoutError:
-            self.logger.warning("IEEE request timed out.")
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": "İstek zaman aşımına uğradı.",
+                "data": []
+            }
         except Exception as e:
             self.logger.error(f"IEEE Error: {str(e)}")
-            
-        return results
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }

@@ -3,18 +3,27 @@ import urllib.parse
 from typing import List, Dict, Any
 import streamlit as st
 from utils.scraper_base import BaseScraper
+import asyncio
 
 class SpringerScraper(BaseScraper):
     def __init__(self):
         super().__init__("Springer")
         
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            start_year = filters.get('start_year', 1990)
+            end_year = filters.get('end_year', 2026)
+            
             if "springer" in st.secrets and "api_key" in st.secrets["springer"]:
                 api_key = st.secrets["springer"]["api_key"]
             else:
-                return results
+                return {
+                    "source": self.name,
+                    "status": "error",
+                    "message": "Springer API Key (.streamlit/secrets.toml) dosyasına tanımlanmamış.",
+                    "data": []
+                }
                 
             url = f"http://api.springernature.com/meta/v2/json?q={urllib.parse.quote(query)}&api_key={api_key}&p=15"
             
@@ -54,9 +63,31 @@ class SpringerScraper(BaseScraper):
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing springer item: {item_e}")
                                 continue
+                    elif response.status == 401 or response.status == 403:
+                         return {
+                            "source": self.name,
+                            "status": "error",
+                            "message": "Springer API Key geçersiz veya süresi dolmuş. Yetkilendirme hatası.",
+                            "data": []
+                        }
+            return {
+                "source": self.name,
+                "status": "success",
+                "message": "",
+                "data": results
+            }
         except asyncio.TimeoutError:
-            self.logger.warning("Springer request timed out.")
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": "İstek zaman aşımına uğradı.",
+                "data": []
+            }
         except Exception as e:
             self.logger.error(f"Springer Error: {str(e)}")
-            
-        return results
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }

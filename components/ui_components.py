@@ -33,8 +33,19 @@ def render_article_card(row: pd.Series):
         original_link_html = f"""<a href="{row['Link']}" target="_blank" style="text-decoration:none; background-color:#050505; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; padding:10px 25px; border:2px solid #00D2FF; box-shadow:4px 4px 0px #00D2FF; transition:all 0.2s;">🌐 ORİJİNAL LİNK</a>"""
         
     bypass_link_html = ""
+    annas_archive_html = ""
+    libgen_html = ""
+    
     if pd.notna(row.get('Sci-Hub Linki')):
-        bypass_link_html = f"""<a href="{row['Sci-Hub Linki']}" target="_blank" style="text-decoration:none; background-color:#CCFF00; color:#050505; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">🔓 SCI-HUB BYPASS</a>"""
+        bypass_link_html = f"""<a href="{row['Sci-Hub Linki']}" target="_blank" style="text-decoration:none; background-color:#CCFF00; color:#050505; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">🔓 SCI-HUB</a>"""
+        
+        if pd.notna(row.get('DOI')) and row.get('DOI') != "-":
+            clean_doi = str(row['DOI']).replace('https://doi.org/', '').replace('http://dx.doi.org/', '')
+            annas_archive_link = f"https://annas-archive.org/search?q={clean_doi}"
+            libgen_link = f"http://libgen.rs/scimag/?q={clean_doi}"
+            
+            annas_archive_html = f"""<a href="{annas_archive_link}" target="_blank" style="text-decoration:none; background-color:#FF0055; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">📚 ANNA'S ARCHIVE</a>"""
+            libgen_html = f"""<a href="{libgen_link}" target="_blank" style="text-decoration:none; background-color:#FF8800; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">🏴‍☠️ LIBGEN</a>"""
     
     # HTML string using brutalist aesthetic
     html_content = f"""<div style="border: 4px solid {borderColor}; background-color: #111; padding: 25px; border-radius: 0; box-shadow: 8px 8px 0px {boxShadowColor}; margin-bottom: 30px;">
@@ -56,9 +67,11 @@ def render_article_card(row: pd.Series):
 <p style="color:#FFF; font-family:'Space Mono',monospace; font-size:0.95rem; margin:0; flex-grow: 1;">{apa_ref_text}</p>
 </div>
 </div>
-<div style="display:flex; justify-content:flex-start; gap:20px; align-items:center;">
+<div style="display:flex; justify-content:flex-start; gap:20px; align-items:center; flex-wrap:wrap;">
 {original_link_html}
 {bypass_link_html}
+{annas_archive_html}
+{libgen_html}
 </div>
 </div>"""
     st.markdown(html_content, unsafe_allow_html=True)

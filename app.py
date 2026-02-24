@@ -50,28 +50,29 @@ with col_center:
         st.session_state.all_results_cache = []
         st.session_state.page_number = 1
 
-    search_query = st.text_input("", placeholder="Mühendislik literatüründe arayın...", label_visibility="collapsed", key="search_query_input", on_change=trigger_search)
-    
-    with st.expander("⚙️ Tarama Seçenekleri ve Sci-Hub Ayarları", expanded=True):
-        ecol1, ecol2 = st.columns(2)
-        with ecol1:
-            db_options = ["Google Scholar", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "IEEE Xplore", "Elsevier (ScienceDirect)", "Springer", "ASME"]
-            default_dbs = ["Google Scholar", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "ASME"]
-            sources = st.multiselect("Veritabanları", 
-                                     db_options,
-                                     default=default_dbs)
-            year_range = st.slider("Yayın Yılı", min_value=1990, max_value=2026, value=(1990, 2026))
-            start_year, end_year = year_range
-        with ecol2:
-            sci_hub_base = st.text_input("Sci-Hub Domain URL", value="https://sci-hub.ist")
-            language = st.multiselect("Sorgu Dili", ["İngilizce", "Türkçe"], default=["Türkçe", "İngilizce"])
-            show_only_locked = st.toggle("Sadece Kilitli/Sci-Hub'lık Olanları Göster", value=False)
-            
-    st.markdown("<span class='start-btn-anchor'></span>", unsafe_allow_html=True)
-    
-    col_start1, col_start2, col_start3 = st.columns([1, 1, 1])
-    with col_start2:
-        search_button = st.button("Taramayı Başlat", use_container_width=True, on_click=trigger_search)
+    with st.form(key="search_form", clear_on_submit=False):
+        search_query = st.text_input("", placeholder="Mühendislik literatüründe arayın...", label_visibility="collapsed", key="search_query_input")
+        
+        with st.expander("⚙️ Tarama Seçenekleri ve Sci-Hub Ayarları", expanded=True):
+            ecol1, ecol2 = st.columns(2)
+            with ecol1:
+                db_options = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "IEEE Xplore", "Elsevier (ScienceDirect)", "Springer", "ASME"]
+                default_dbs = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "ASME"]
+                sources = st.multiselect("Veritabanları", 
+                                         db_options,
+                                         default=default_dbs)
+                year_range = st.slider("Yayın Yılı", min_value=1990, max_value=2026, value=(1990, 2026))
+                start_year, end_year = year_range
+            with ecol2:
+                sci_hub_base = st.text_input("Sci-Hub Domain URL", value="https://sci-hub.ist")
+                language = st.multiselect("Sorgu Dili", ["İngilizce", "Türkçe"], default=["Türkçe", "İngilizce"])
+                show_only_locked = st.toggle("Sadece Kilitli/Sci-Hub'lık Olanları Göster", value=False)
+                
+        st.markdown("<span class='start-btn-anchor'></span>", unsafe_allow_html=True)
+        
+        col_start1, col_start2, col_start3 = st.columns([1, 1, 1])
+        with col_start2:
+            search_button = st.form_submit_button("Taramayı Başlat", use_container_width=True, on_click=trigger_search)
 
 # --- Execution Logic (Below Search) ---
 if st.session_state.get('search_triggered', False):
@@ -94,8 +95,7 @@ if st.session_state.get('search_triggered', False):
                 
                 loading_html = """
 <div style="border: 4px solid #CCFF00; background-color: #111; padding: 40px; text-align: center; box-shadow: 8px 8px 0px #00D2FF; margin: 40px auto; max-width: 800px;">
-<h3 style="font-family: 'Anton', sans-serif; color: #CCFF00; font-size: 2.2rem; letter-spacing: 2px; margin-top:0; text-transform: uppercase;">🧭 AKADEMİK PUSULA AI ⚡ LİTERATÜR TARIYOR... LÜTFEN BEKLEYİN.</h3>
-<p style="font-family: 'Space Mono', monospace; color: #00D2FF; font-size: 1.5rem; margin-bottom:0; font-weight: bold;">Tahmini Bekleme Süresi: <span id="countdown_timer">45</span> Saniye</p>
+<h3 style="font-family: 'Anton', sans-serif; color: #CCFF00; font-size: 2.2rem; letter-spacing: 2px; margin-top:0; margin-bottom:0; text-transform: uppercase;">🧭 AKADEMİK PUSULA AI ⚡ LİTERATÜR TARIYOR... LÜTFEN BEKLEYİN.</h3>
 </div>
                 """
                 st.markdown(loading_html, unsafe_allow_html=True)
@@ -105,37 +105,45 @@ if st.session_state.get('search_triggered', False):
                     """
                     <script>
                         setTimeout(function() { window.parent.document.getElementById('search-execution-anchor').scrollIntoView({behavior: 'smooth', block: 'center'}); }, 100);
-                        var timeLeft = 45;
-                        var tInterval = setInterval(function() {
-                            timeLeft--;
-                            var el = window.parent.document.getElementById('countdown_timer');
-                            if (el) { el.innerText = timeLeft > 0 ? timeLeft : 0; }
-                            if (timeLeft <= 0) clearInterval(tInterval);
-                        }, 1000);
                     </script>
                     """,
                     height=0
                 )
             
             @st.cache_data(ttl=3600, show_spinner=False)
-            def fetch_data_cached(sources_list, q, s_year, e_year):
+            def fetch_data_cached(sources_list, q, filters_dict):
                 import asyncio
                 from utils.fetcher import fetch_all_sources
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
-                    return loop.run_until_complete(fetch_all_sources(sources_list, q, s_year, e_year))
+                    return loop.run_until_complete(fetch_all_sources(sources_list, q, filters_dict))
                 finally:
                     # Do not shutdown default executor to prevent zombie threads from hanging Streamlit
                     loop.close()
                 
-                
-            all_results = fetch_data_cached(sources, query_to_run, start_year, end_year)
+            filters = {
+                'start_year': start_year,
+                'end_year': end_year,
+                'language': language
+            }
+            
+            fetch_output = fetch_data_cached(sources, query_to_run, filters)
                 
             loading_container.empty()
-            st.session_state.all_results_cache = all_results
-        else:
-            all_results = st.session_state.all_results_cache
+            st.session_state.all_results_cache = fetch_output.get("results", [])
+            st.session_state.api_errors_cache = fetch_output.get("errors", [])
+            
+        all_results = st.session_state.get('all_results_cache', [])
+        api_errors = st.session_state.get('api_errors_cache', [])
+        
+        if api_errors:
+            error_html = "<div style='background-color: #331111; border-left: 5px solid #ff4444; padding: 15px; margin-bottom: 20px; font-family: \"Space Mono\", monospace;'>"
+            error_html += "<h4 style='color: #ff4444; margin-top: 0;'>⚠️ Bazı Kaynaklarda Tarama Sorunu:</h4><ul style='color: #ffaaaa; margin-bottom: 0;'>"
+            for err in api_errors:
+                error_html += f"<li><b>{err['source']}:</b> {err['message']}</li>"
+            error_html += "</ul></div>"
+            st.markdown(error_html, unsafe_allow_html=True)
 
         if all_results:
             df = pd.DataFrame(all_results)

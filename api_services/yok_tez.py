@@ -1,51 +1,36 @@
 import asyncio
 from typing import List, Dict, Any
 from utils.scraper_base import BaseScraper
-from scholarly import scholarly
-import time
+from api_services.openalex import OpenAlexScraper
 
 class YokTezScraper(BaseScraper):
     def __init__(self):
         super().__init__("YÖK Tez / TR Üniversiteleri")
+        self.oa_scraper = OpenAlexScraper()
         
-    def _fetch_sync(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
-        results = []
+    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         try:
-            yok_query = f"{query} site:edu.tr"
-            search_query = scholarly.search_pubs(yok_query)
+            yok_query = f"{query} thesis turkey university"
             
-            for i in range(15):
-                try:
-                    pub = next(search_query)
-                    bib = pub.get('bib', {})
-                    title = bib.get('title', 'Bilinmiyor')
-                    year = bib.get('pub_year', 'Bilinmiyor')
+            # Delegate entirely to the async OpenAlexScraper
+            result = await self.oa_scraper.fetch(yok_query, filters)
+            
+            # Rewrite metadata to match YokTez
+            if result.get("status") == "success":
+                result["source"] = self.name
+                for item in result.get("data", []):
+                    item["Kaynak"] = self.name
                     
-                    if str(year).isdigit() and not (start_year <= int(year) <= end_year):
-                        continue
-                    
-                    authors = ', '.join(bib.get('author', ['Bilinmiyor']))
-                    pub_url = pub.get('pub_url', '')
-                    eprint_url = pub.get('eprint_url', '')
-                    abstract = bib.get('abstract', 'Özet bulunamadı.')
-                    
-                    status = "Açık" if eprint_url else "Kilitli/Bilinmiyor"
-                    link = pub_url if pub_url else eprint_url
-                    
-                    results.append({
-                        "Kaynak": self.name, "Yıl": year, "Başlık": title,
-                        "Yazarlar": authors, "Erişim Durumu": status, "DOI": "-",
-                        "Link": link, "Özet": abstract
-                    })
-                    time.sleep(1)
-                except StopIteration:
-                    break
-                except Exception as item_e:
-                    self.logger.warning(f"Error parsing yok tez item: {item_e}")
-                    continue
+            elif result.get("status") == "error":
+                result["source"] = self.name # Make sure error source is correct
+                
+            return result
+            
         except Exception as e:
             self.logger.error(f"YÖK Tez Error: {str(e)}")
-        return results
-
-    async def fetch(self, query: str, start_year: int, end_year: int) -> List[Dict[str, Any]]:
-        return await asyncio.to_thread(self._fetch_sync, query, start_year, end_year)
+            return {
+                "source": self.name,
+                "status": "error",
+                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+                "data": []
+            }
