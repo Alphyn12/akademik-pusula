@@ -14,7 +14,7 @@ def render_metrics(df: pd.DataFrame, sci_hub_base: str):
         scihub_count = df['Sci-Hub Linki'].notna().sum() if not df.empty and 'Sci-Hub Linki' in df.columns else 0
         st.markdown(f"<div class='metric-card'><h3 class='highlight-val'>{scihub_count}</h3><p>Sci-Hub Bypass Links</p></div>", unsafe_allow_html=True)
     
-def render_article_card(row: pd.Series):
+def render_article_card(row: pd.Series, index: int, is_focus_mode: bool = False):
     """Renders a single article card with citation and buttons."""
     borderColor = "#CCFF00" if pd.notna(row.get("Sci-Hub Linki")) else "#555"
     boxShadowColor = "#00D2FF" if pd.notna(row.get("Sci-Hub Linki")) else "#333"
@@ -27,25 +27,16 @@ def render_article_card(row: pd.Series):
         str(row.get('DOI', '-'))
     )
     
-    # URL ve Buton HTML'leri
-    original_link_html = ""
-    if row.get('Link') and row.get('Link') != '-':
-        original_link_html = f"""<a href="{row['Link']}" target="_blank" style="text-decoration:none; background-color:#050505; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; padding:10px 25px; border:2px solid #00D2FF; box-shadow:4px 4px 0px #00D2FF; transition:all 0.2s;">🌐 ORİJİNAL LİNK</a>"""
-        
-    bypass_link_html = ""
-    annas_archive_html = ""
-    libgen_html = ""
     
-    if pd.notna(row.get('Sci-Hub Linki')):
-        bypass_link_html = f"""<a href="{row['Sci-Hub Linki']}" target="_blank" style="text-decoration:none; background-color:#CCFF00; color:#050505; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">🔓 SCI-HUB</a>"""
-        
-        if pd.notna(row.get('DOI')) and row.get('DOI') != "-":
-            clean_doi = str(row['DOI']).replace('https://doi.org/', '').replace('http://dx.doi.org/', '')
-            annas_archive_link = f"https://annas-archive.org/search?q={clean_doi}"
-            libgen_link = f"http://libgen.rs/scimag/?q={clean_doi}"
-            
-            annas_archive_html = f"""<a href="{annas_archive_link}" target="_blank" style="text-decoration:none; background-color:#FF0055; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">📚 ANNA'S ARCHIVE</a>"""
-            libgen_html = f"""<a href="{libgen_link}" target="_blank" style="text-decoration:none; background-color:#FF8800; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s;">🏴‍☠️ LIBGEN</a>"""
+    # URL ve Buton HTML'leri (Now handled natively via Streamlit below)
+    import urllib.parse
+    clean_doi = ""
+    if pd.notna(row.get('DOI')) and row.get('DOI') != "-":
+        clean_doi = str(row['DOI']).replace('https://doi.org/', '').replace('http://dx.doi.org/', '')
+    query_str = clean_doi if clean_doi else urllib.parse.quote_plus(str(row.get('Başlık', '')))
+    sci_hub_href = row.get('Sci-Hub Linki') if pd.notna(row.get('Sci-Hub Linki')) else "https://sci-hub.se"
+    annas_archive_link = f"https://annas-archive.li/search?q={query_str}"
+    libgen_link = f"https://libgen.li/index.php?req={query_str}"
     
     # HTML string using brutalist aesthetic
     html_content = f"""<div style="border: 4px solid {borderColor}; background-color: #111; padding: 25px; border-radius: 0; box-shadow: 8px 8px 0px {boxShadowColor}; margin-bottom: 30px;">
@@ -67,13 +58,29 @@ def render_article_card(row: pd.Series):
 <p style="color:#FFF; font-family:'Space Mono',monospace; font-size:0.95rem; margin:0; flex-grow: 1;">{apa_ref_text}</p>
 </div>
 </div>
-<div style="display:flex; justify-content:flex-start; gap:20px; align-items:center; flex-wrap:wrap;">
-{original_link_html}
-{bypass_link_html}
-{annas_archive_html}
-{libgen_html}
-</div>
 </div>"""
     st.markdown(html_content, unsafe_allow_html=True)
+    
+    # Native Streamlit Buttons mapped into columns to utilize exact styling seamlessly
+    col1, col2, col3, col4, col5 = st.columns([1, 1, 1.2, 1, 1.8])
+    with col1:
+        if row.get('Link') and row.get('Link') != '-':
+            st.link_button("🌐 ORİJİNAL LİNK", url=row['Link'], use_container_width=True)
+        else:
+            st.button("🌐 LİNK YOK", disabled=True, key=f"orig_none_{index}", use_container_width=True)
+    with col2:
+        st.link_button("🔓 SCI-HUB", url=sci_hub_href, use_container_width=True)
+    with col3:
+        st.link_button("📚 ANNA'S ARCHIVE", url=annas_archive_link, use_container_width=True)
+    with col4:
+        st.link_button("🏴‍☠️ LIBGEN", url=libgen_link, use_container_width=True)
+    with col5:
+        if not is_focus_mode:
+            if st.button("👁️ MAKALEYE ODAKLAN & AI İLE TARTIŞ", key=f"focus_btn_{index}", use_container_width=True):
+                st.session_state.view_mode = 'focus'
+                st.session_state.selected_paper = row
+                st.session_state.chat_history = []
+                st.rerun()
+    
     # Native Streamlit code block for easy copy-pasting of citation right below
     st.code(apa_ref_text, language="text")

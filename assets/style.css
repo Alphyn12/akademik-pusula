@@ -164,29 +164,106 @@ div[data-testid="InputInstructions"] {
     background-color: transparent !important;
 }
 
-/* Primary Brutalist Button (Includes Form Submit) */
-.stButton > button, 
-[data-testid="stForm"] .stButton > button,
-[data-testid="stFormSubmitButton"] > button {
+/* Base Button Animations and Styling */
+.stButton>button,
+[data-testid="stFormSubmitButton"]>button {
     background-color: #050505 !important;
     border: 4px solid #CCFF00 !important;
     color: #FFFFFF !important;
+    font-family: 'Space Mono', monospace !important;
+    font-weight: bold !important;
     border-radius: 0px !important;
-    font-weight: 800 !important;
-    font-family: 'Bebas Neue', sans-serif !important;
-    letter-spacing: 4px;
-    padding: 1.2rem 3rem !important;
-    transition: all 0.2s !important;
-    display: block;
-    margin: 2.5rem auto 0 auto;
-    text-transform: uppercase;
-    font-size: 2.4rem !important;
-    box-shadow: 8px 8px 0px #00D2FF !important;
-    width: 100% !important; /* Forces the button stretch in columns and forms */
+    padding: 0.5rem 1rem !important;
+    box-shadow: 6px 6px 0px #00D2FF !important;
+    transition: all 0.2s ease-in-out !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
 }
 
-.stButton > button:hover,
-[data-testid="stFormSubmitButton"] > button:hover {
+[data-testid="stLinkButton"]>a {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    background-color: #050505 !important;
+    border: 4px solid #CCFF00 !important;
+    color: #FFFFFF !important;
+    font-family: 'Space Mono', monospace !important;
+    font-weight: bold !important;
+    border-radius: 0px !important;
+    padding: 0.5rem 1rem !important;
+    box-shadow: 6px 6px 0px #00D2FF !important;
+    transition: all 0.2s ease-in-out !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    width: 100% !important;
+}
+
+.stButton>button:hover,
+[data-testid="stFormSubmitButton"]>button:hover,
+[data-testid="stLinkButton"]>a:hover {
+    background-color: #CCFF00 !important;
+    color: #050505 !important;
+    box-shadow: 8px 8px 0px #00D2FF !important;
+    transform: translate(-2px, -2px) !important;
+}
+
+/* Custom Action Button Override Colors (Matched via Link Href) */
+[data-testid="stLinkButton"]>a[href*="sci-hub"] {
+    background-color: #CCFF00 !important;
+    border-color: #050505 !important;
+    color: #050505 !important;
+}
+
+[data-testid="stLinkButton"]>a[href*="sci-hub"]:hover {
+    background-color: #b3e600 !important;
+    box-shadow: 4px 4px 0px #050505 !important;
+}
+
+[data-testid="stLinkButton"]>a[href*="annas-archive"] {
+    background-color: #FF0055 !important;
+    border-color: #050505 !important;
+    color: #FFF !important;
+}
+
+[data-testid="stLinkButton"]>a[href*="annas-archive"]:hover {
+    background-color: #e6004c !important;
+    box-shadow: 4px 4px 0px #050505 !important;
+}
+
+[data-testid="stLinkButton"]>a[href*="libgen"] {
+    background-color: #FF8800 !important;
+    border-color: #050505 !important;
+    color: #FFF !important;
+}
+
+[data-testid="stLinkButton"]>a[href*="libgen"]:hover {
+    background-color: #e67a00 !important;
+    box-shadow: 4px 4px 0px #050505 !important;
+}
+
+/* Primary Button Override for Focus Mode */
+button[data-testid="baseButton-primary"] {
+    background-color: #00D2FF !important;
+    border-color: #050505 !important;
+    color: #050505 !important;
+}
+
+button[data-testid="baseButton-primary"]:hover {
+    background-color: #00bce6 !important;
+    box-shadow: 4px 4px 0px #CCFF00 !important;
+}
+
+.stButton>button,
+[data-testid="stForm"] .stButton>button,
+[data-testid="stFormSubmitButton"]>button {
+    font-size: 2.4rem !important;
+    width: 100% !important;
+    /* Forces the button stretch in columns and forms */
+}
+
+.stButton>button:hover,
+[data-testid="stFormSubmitButton"]>button:hover {
     background-color: #CCFF00 !important;
     color: #050505 !important;
     border-color: #00D2FF !important;
@@ -194,8 +271,8 @@ div[data-testid="InputInstructions"] {
     transform: translate(-4px, -4px);
 }
 
-.stButton > button:active,
-[data-testid="stFormSubmitButton"] > button:active {
+.stButton>button:active,
+[data-testid="stFormSubmitButton"]>button:active {
     transform: translate(4px, 4px) !important;
     box-shadow: 0px 0px 0px transparent !important;
 }
@@ -451,4 +528,82 @@ div[data-testid="stDownloadButton"]>button:hover {
 div[data-testid="stDownloadButton"]>button:active {
     transform: translate(3px, 3px);
     box-shadow: 0px 0px 0px transparent !important;
+}
+
+/* =========================================
+   CHAT UI - NEO-BRUTALIST STYLING
+========================================= */
+
+/* Chat Message Container */
+[data-testid="stChatMessage"] {
+    background-color: #111111 !important;
+    border: 3px solid #555 !important;
+    border-radius: 0px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 6px 6px 0px #333 !important;
+    transition: all 0.2s;
+}
+
+/* AI Assistant Message */
+[data-testid="stChatMessage"][data-baseweb="block"]:has(div[data-testid="stChatMessageAvatarUser"] + div [data-testid="stMarkdownContainer"] p:empty) {
+    /* This is a hacky way to distinguish user from assistant if needed, but Streamlit has classes */
+}
+
+div[data-testid="stChatMessage"]:nth-child(even) {
+    /* Assuming Assistant is even or vice versa, but let's use a more robust selector if possible. In Streamlit, assistant vs user usually has different default background colors we can override */
+    border-color: #00D2FF !important;
+    box-shadow: 6px 6px 0px #CCFF00 !important;
+    background-color: #0a0a0a !important;
+}
+
+div[data-testid="stChatMessage"]:nth-child(odd) {
+    border-color: #CCFF00 !important;
+    box-shadow: 6px 6px 0px #00D2FF !important;
+}
+
+/* Chat Input Box (The bottom bar) */
+[data-testid="stChatInput"] {
+    background-color: transparent !important;
+    padding-bottom: 2rem !important;
+}
+
+/* Remove any background panel around the bottom chat input from Streamlit v1.30+ */
+div.stBottomBlockContainer {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    background-color: #111111 !important;
+    border: 4px solid #CCFF00 !important;
+    border-radius: 0px !important;
+    color: #FFF !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 1.2rem !important;
+    padding: 1rem !important;
+    box-shadow: 8px 8px 0px #00D2FF !important;
+}
+
+[data-testid="stChatInput"] textarea:focus {
+    border-color: #00D2FF !important;
+    box-shadow: 8px 8px 0px #CCFF00 !important;
+}
+
+/* Chat Input Send Button */
+[data-testid="stChatInputSubmitButton"] {
+    background-color: #CCFF00 !important;
+    border: 2px solid #050505 !important;
+    border-radius: 0px !important;
+    color: #050505 !important;
+    right: 15px !important;
+    bottom: 15px !important;
+    box-shadow: 4px 4px 0px #00D2FF !important;
+    transition: all 0.2s;
+}
+
+[data-testid="stChatInputSubmitButton"]:hover {
+    background-color: #00D2FF !important;
+    box-shadow: 6px 6px 0px #CCFF00 !important;
+    transform: translate(-2px, -2px);
 }

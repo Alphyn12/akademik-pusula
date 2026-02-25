@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  akademik-pusula:
+    build: .
+    container_name: akademik-pusula-app
+    ports:
+      - "8501:8501"
+    restart: always
+    volumes:
+      - ./logs:/app/logs
+      - ./.streamlit:/app/.streamlit
+      # Opsiyonel: Kodu değiştirince anında yeniden yüklenmesini istiyorsanız aşağıdaki satırı açabilirsiniz
+      # - .:/app
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      # API Key'lerinizi .env dosyasından çekebilirsiniz veya buraya doğrudan yazabilirsiniz:
+      # - IEEE_API_KEY=${IEEE_API_KEY}
+      # - ELSEVIER_API_KEY=${ELSEVIER_API_KEY}
