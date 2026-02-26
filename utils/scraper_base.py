@@ -30,12 +30,14 @@ class BaseScraper(ABC):
         
         # 1. Try Streamlit Secrets (e.g., [section] key=val)
         try:
+            # Check if secrets file exists/is loadable by streamlit before access
             if section and section in st.secrets:
                 if key in st.secrets[section]:
                     return st.secrets[section][key]
             elif key in st.secrets:
                 return st.secrets[key]
         except Exception:
+            # st.secrets might raise StreamlitSecretNotFoundError if the file is missing
             pass
             
         # 2. Try Environment Variables (e.g., SECTION_KEY=val or KEY=val)
