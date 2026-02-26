@@ -3,12 +3,8 @@ import httpx
 import json
 import streamlit as st
 
-# Retrieve API key securely from Streamlit secrets
-try:
-    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-except KeyError:
-    # Fallback to environment variable or hardcoded if secrets not configured locally
-    GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "gsk_HIDDEN")
+# Retrieve API key securely from Streamlit secrets or Environment Variables (for Railway)
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") or os.environ.get("GROQ_API_KEY", "gsk_HIDDEN")
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 

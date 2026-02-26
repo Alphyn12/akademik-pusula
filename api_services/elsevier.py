@@ -14,15 +14,14 @@ class ElsevierScraper(BaseScraper):
         results = []
         try:
             # Check for API Key in Streamlit SECRETS
-            if not ("elsevier" in st.secrets and "api_key" in st.secrets["elsevier"]):
+            api_key = self.get_config("elsevier", "api_key")
+            if not api_key:
                 return {
                     "source": self.name,
                     "status": "error",
-                    "message": "Elsevier API Key (.streamlit/secrets.toml) dosyasına tanımlanmamış. ScienceDirect araması yapılamıyor.",
+                    "message": "Elsevier API Key (.streamlit/secrets.toml veya Environment Variable) tanımlanmamış. ScienceDirect araması yapılamıyor.",
                     "data": []
                 }
-                
-            api_key = st.secrets["elsevier"]["api_key"]
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             

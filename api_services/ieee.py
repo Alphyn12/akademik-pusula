@@ -15,13 +15,12 @@ class IEEEScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            if "ieee" in st.secrets and "api_key" in st.secrets["ieee"]:
-                api_key = st.secrets["ieee"]["api_key"]
-            else:
+            api_key = self.get_config("ieee", "api_key")
+            if not api_key:
                 return {
                     "source": self.name,
                     "status": "error",
-                    "message": "IEEE API Key (.streamlit/secrets.toml) dosyasına tanımlanmamış.",
+                    "message": "IEEE API Key (.streamlit/secrets.toml veya Environment Variable) tanımlanmamış.",
                     "data": []
                 }
                 

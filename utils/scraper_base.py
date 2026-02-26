@@ -12,6 +12,36 @@ class BaseScraper(ABC):
         self.name = name
         self.logger = logger
         
+    def get_config(self, section: str, key: str, default: Any = None) -> Any:
+        """
+        Retrieves a configuration value from Streamlit secrets or environment variables.
+        Falls back to environment variables if st.secrets is not available or the key is missing.
+        
+        Args:
+            section (str): The section name (e.g., 'springer').
+            key (str): The key name (e.g., 'api_key').
+            default (Any): Optional default value if not found.
+            
+        Returns:
+            Any: The configuration value or default.
+        """
+        import os
+        import streamlit as st
+        
+        # 1. Try Streamlit Secrets (e.g., [section] key=val)
+        try:
+            if section and section in st.secrets:
+                if key in st.secrets[section]:
+                    return st.secrets[section][key]
+            elif key in st.secrets:
+                return st.secrets[key]
+        except Exception:
+            pass
+            
+        # 2. Try Environment Variables (e.g., SECTION_KEY=val or KEY=val)
+        env_key = f"{section.upper()}_{key.upper()}" if section else key.upper()
+        return os.environ.get(env_key, os.environ.get(key.upper(), default))
+
     @abstractmethod
     async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         """

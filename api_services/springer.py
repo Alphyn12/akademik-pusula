@@ -15,13 +15,12 @@ class SpringerScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            if "springer" in st.secrets and "api_key" in st.secrets["springer"]:
-                api_key = st.secrets["springer"]["api_key"]
-            else:
+            api_key = self.get_config("springer", "api_key")
+            if not api_key:
                 return {
                     "source": self.name,
                     "status": "error",
-                    "message": "Springer API Key (.streamlit/secrets.toml) dosyasına tanımlanmamış.",
+                    "message": "Springer API Key (.streamlit/secrets.toml veya Environment Variable) tanımlanmamış.",
                     "data": []
                 }
                 

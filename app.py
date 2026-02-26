@@ -111,7 +111,7 @@ else:
             st.session_state.page_number = 1
 
         with st.form(key="search_form", clear_on_submit=False):
-            search_query = st.text_input("", placeholder="Mühendislik literatüründe arayın...", label_visibility="collapsed", key="search_query_input")
+            search_query = st.text_input("Arama Terimi", placeholder="Mühendislik literatüründe arayın...", label_visibility="collapsed", key="search_query_input")
             
             with st.expander("⚙️ Tarama Seçenekleri ve Sci-Hub Ayarları", expanded=True):
                 ecol1, ecol2 = st.columns(2)

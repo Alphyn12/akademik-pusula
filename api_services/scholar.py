@@ -24,10 +24,8 @@ class ScholarScraper(BaseScraper):
         global _CAPTCHA_TRIGGERED
         results = []
         try:
-            # Check if user has provided a ScraperAPI key in secrets
-            scraper_api_key = None
-            if "scraper_api" in st.secrets and "api_key" in st.secrets["scraper_api"]:
-                scraper_api_key = st.secrets["scraper_api"]["api_key"].strip()
+            # Check if user has provided a ScraperAPI key
+            scraper_api_key = self.get_config("scraper_api", "api_key")
 
             # Fast-Fail if a previous Scholar request within this run already hit CAPTCHA
             # (Only applies if NOT using a third-party paid/free-tier rotating scraper API)
