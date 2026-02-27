@@ -9,6 +9,48 @@ import urllib.parse
 # --- Page Config ---
 st.set_page_config(page_title="Akademik Pusula 🧭", layout="wide", initial_sidebar_state="collapsed")
 
+# --- PWA SETUP ---
+import streamlit.components.v1 as components
+components.html(
+    """
+    <script>
+      // Register Service Worker in the parent window
+      if ('serviceWorker' in window.parent.navigator) {
+        window.parent.navigator.serviceWorker.register('/app/static/sw.js').then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }).catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      }
+
+      // Inject manifest and apple touch icons
+      const head = window.parent.document.head;
+      if (!head.querySelector('link[rel="manifest"]')) {
+          const manifest = document.createElement('link');
+          manifest.rel = 'manifest';
+          manifest.href = '/app/static/manifest.json';
+          head.appendChild(manifest);
+          
+          const appleMeta = document.createElement('meta');
+          appleMeta.name = 'apple-mobile-web-app-capable';
+          appleMeta.content = 'yes';
+          head.appendChild(appleMeta);
+          
+          const appleTitle = document.createElement('meta');
+          appleTitle.name = 'apple-mobile-web-app-title';
+          appleTitle.content = 'Pusula';
+          head.appendChild(appleTitle);
+          
+          const appleIcon = document.createElement('link');
+          appleIcon.rel = 'apple-touch-icon';
+          appleIcon.href = '/app/static/apple-touch-icon.png';
+          head.appendChild(appleIcon);
+      }
+    </script>
+    """,
+    height=0
+)
+
 # --- BOLD AESTHETIC CSS ---
 # Theme: "Dark Neobrutalism"
 # Aggressive dark mode, pitch black background, neon lime/light blue thick unblurred drop shadows.

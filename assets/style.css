@@ -546,9 +546,7 @@ div[data-testid="stDownloadButton"]>button:active {
 }
 
 /* AI Assistant Message */
-[data-testid="stChatMessage"][data-baseweb="block"]:has(div[data-testid="stChatMessageAvatarUser"] + div [data-testid="stMarkdownContainer"] p:empty) {
-    /* This is a hacky way to distinguish user from assistant if needed, but Streamlit has classes */
-}
+/* Streamlit has specific classes for messages, used for styling below */
 
 div[data-testid="stChatMessage"]:nth-child(even) {
     /* Assuming Assistant is even or vice versa, but let's use a more robust selector if possible. In Streamlit, assistant vs user usually has different default background colors we can override */
@@ -606,4 +604,138 @@ div.stBottomBlockContainer {
     background-color: #00D2FF !important;
     box-shadow: 6px 6px 0px #CCFF00 !important;
     transform: translate(-2px, -2px);
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (PWA & PHONES)
+========================================= */
+@media (max-width: 768px) {
+
+    /* Shrink the giant brutalist logo */
+    .logo-container {
+        margin-top: 4vh !important;
+        margin-bottom: 2rem !important;
+    }
+
+    .logo-text {
+        font-size: 4rem !important;
+        text-shadow: 4px 4px 0px #00D2FF, -2px -2px 0px #CCFF00 !important;
+    }
+
+    .shift-left {
+        transform: none !important;
+        /* Center properly on mobile */
+        display: block !important;
+        text-align: center !important;
+    }
+
+    .logo-subtext {
+        font-size: 0.9rem !important;
+        margin-top: -10px !important;
+        padding: 4px 8px !important;
+        box-shadow: 2px 2px 0px #00D2FF !important;
+    }
+
+    /* Adjust Search Input for Mobile */
+    [data-testid="stTextInput"] div[data-baseweb="input"] {
+        padding: 12px 16px !important;
+        min-height: 60px !important;
+        box-shadow: 4px 4px 0px #00D2FF !important;
+    }
+
+    [data-testid="stTextInput"] input {
+        font-size: 1.1rem !important;
+        padding: 0 30px 0 5px !important;
+    }
+
+    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
+        transform: translate(-2px, -2px) !important;
+        box-shadow: 6px 6px 0px #00D2FF !important;
+    }
+
+    [data-testid="stTextInput"] div[data-baseweb="input"]:has(input[placeholder="Mühendislik literatüründe arayın..."])::after {
+        right: 15px !important;
+        font-size: 1.5rem !important;
+    }
+
+    /* Adjust Expanders and Metric Cards */
+    [data-testid="stExpander"],
+    .metric-card,
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(.export-header),
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(.feedback-header) {
+        padding: 1rem !important;
+        margin-top: 1.5rem !important;
+        border-width: 2px !important;
+        box-shadow: 4px 4px 0px #00D2FF !important;
+    }
+
+    .metric-card h3 {
+        font-size: 2.5rem !important;
+    }
+
+    .export-header {
+        font-size: 2rem !important;
+        text-shadow: 2px 2px 0px #00D2FF !important;
+    }
+
+    /* Touch Targets for Mobile (min 44px height for accessibility) */
+    .stButton>button,
+    [data-testid="stFormSubmitButton"]>button,
+    [data-testid="stLinkButton"]>a,
+    div[data-testid="stDownloadButton"]>button {
+        font-size: 1.2rem !important;
+        padding: 12px 16px !important;
+        /* Guarantee > 44px height */
+        box-shadow: 4px 4px 0px #00D2FF !important;
+        border-width: 2px !important;
+    }
+
+    .stButton>button:hover,
+    [data-testid="stFormSubmitButton"]>button:hover,
+    [data-testid="stLinkButton"]>a:hover,
+    div[data-testid="stDownloadButton"]>button:hover {
+        box-shadow: 6px 6px 0px #00D2FF !important;
+        transform: translate(-1px, -1px) !important;
+    }
+
+    /* Ensure multi-select tags don't break layout */
+    [data-testid="stMultiSelect"] span[data-baseweb="tag"] {
+        margin-right: 6px !important;
+        margin-bottom: 6px !important;
+        padding: 2px 6px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Columns fallback to block on mobile */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    [data-testid="stHorizontalBlock"]>div {
+        width: 100% !important;
+    }
+
+    /* Article Card Mobile Fixes */
+    .article-card-raw {
+        padding: 1rem !important;
+        border-width: 2px !important;
+        box-shadow: 4px 4px 0px #00D2FF !important;
+    }
+
+    .article-title-raw {
+        font-size: 1.4rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .article-meta-raw {
+        font-size: 0.8rem !important;
+    }
+
+    /* Export container override */
+    div[style*="display: grid"] {
+        grid-template-columns: 1fr !important;
+        /* Stack export grids on mobile */
+        gap: 15px !important;
+    }
 }

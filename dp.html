@@ -34,6 +34,7 @@
         <link rel="stylesheet" href="/zollu/css/pages/feedback.css">
         <link rel="stylesheet" href="/zollu/css/pages/user_project_modal.css">
         <link rel="stylesheet" href="/zollu/css/pages/picker/nano.min.css">
+        <link rel="stylesheet" href="/zollu/css/ckeditor/ckeditor.css">
     
 
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
@@ -406,7 +407,7 @@
                 </button>
             </div>
         </div>
-        <input type="hidden" id="search_verification__token" name="search_verification[_token]" data-controller="csrf-protection" value="ff6308f4e43178edfb4862cbeea63f58._5Peiyap-4S1K15Sc3j8FVhZroZ4X2fIag_2ht_D5dc.ltK82VXhvNTPZ2pmJh6LXzULmNJOEhC5G0OYsu6Uh5yF55f6QvCY_cEdOQ" /></form>
+        <input type="hidden" id="search_verification__token" name="search_verification[_token]" data-controller="csrf-protection" value="45ae927a8820442032.UUcC3TEWuAOk2C4Qfl6WvwDiCQrGOjpCAIir3ZGclbE.NhQw6RxO_nfGkxt0PTPBkjG1UWmpfngnUsXbnNnY3-E7D1SFBXzgSNWKSQ" /></form>
     </div>
 
                                     </div>
@@ -606,6 +607,417 @@
         });
     </script>
     <script type="text/javascript" src="/zollu/js/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <!-- CKEditör -->
+    <script src="/zollu/js/ckeditor/ck-editor-conf.js"></script>
+    <script>window.CKEditorPresets = {"none":{"toolbar":[],"minHeight":150,"heading":false,"headingOptions":[],"image":false},"simple":{"toolbar":["heading","|","bold","italic","|","fontColor","|","link","|","bulletedList","numberedList","|","undo","redo"],"minHeight":150,"heading":true,"headingOptions":[],"image":false},"standard":{"toolbar":["heading","|","bold","italic","|","link","|","fontColor","|","bulletedList","numberedList","|","imageUpload","customFileButton","|","undo","redo"],"minHeight":150,"heading":true,"headingOptions":[{"model":"paragraph","title":"Paragraph","class":"ck-heading_paragraph"},{"model":"heading1","view":"h1","title":"Heading 1","class":"ck-heading_heading1"},{"model":"heading2","view":"h2","title":"Heading 2","class":"ck-heading_heading2"},{"model":"heading3","view":"h3","title":"Heading 3","class":"ck-heading_heading3"}],"image":true},"full":{"toolbar":["heading","|","bold","italic","|","link","|","fontColor","|","bulletedList","numberedList","|","imageUpload","customFileButton","insertTable","|","undo","redo"],"minHeight":150,"heading":true,"headingOptions":[{"model":"paragraph","title":"Paragraph","class":"ck-heading_paragraph"},{"model":"heading1","view":"h1","title":"Heading 1","class":"ck-heading_heading1"},{"model":"heading2","view":"h2","title":"Heading 2","class":"ck-heading_heading2"},{"model":"heading3","view":"h3","title":"Heading 3","class":"ck-heading_heading3"}],"image":true},"advanced":{"toolbar":["undo","redo","|","heading","|","fontSize","fontFamily","fontColor","fontBackgroundColor","|","bold","italic","underline","strikethrough","subscript","superscript","code","|","link","|","alignment","|","outdent","indent","|","bulletedList","numberedList","todoList","|","imageUpload","customFileButton","insertTable","mediaEmbed","|","blockQuote","codeBlock","horizontalLine","pageBreak","specialCharacters","|","removeFormat","|","sourceEditing"],"minHeight":150,"heading":true,"headingOptions":[{"model":"paragraph","title":"Paragraph","class":"ck-heading_paragraph"},{"model":"heading1","view":"h1","title":"Heading 1","class":"ck-heading_heading1"},{"model":"heading2","view":"h2","title":"Heading 2","class":"ck-heading_heading2"},{"model":"heading3","view":"h3","title":"Heading 3","class":"ck-heading_heading3"}],"image":true},"blog":{"toolbar":["heading","|","bold","italic","|","link","|","bulletedList","numberedList","|","imageUpload","customFileButton","|","blockQuote","|","undo","redo"],"minHeight":150,"heading":true,"headingOptions":[{"model":"paragraph","title":"Paragraph","class":"ck-heading_paragraph"},{"model":"heading2","view":"h2","title":"Ba\u015fl\u0131k 2","class":"ck-heading_heading2"},{"model":"heading3","view":"h3","title":"Ba\u015fl\u0131k 3","class":"ck-heading_heading3"}],"image":true},"email":{"toolbar":["heading","|","bold","italic","|","link","|","fontColor","|","bulletedList","numberedList","|","imageUpload","customFileButton","|","undo","redo","sourceEditing"],"minHeight":150,"heading":true,"headingOptions":[],"image":true},"bas\u0131c":{"toolbar":["heading","|","bold","italic","|","link","|","fontColor","|","bulletedList","numberedList","|","customFileButton","|","undo","redo"],"minHeight":150,"heading":true,"headingOptions":[{"model":"paragraph","title":"Paragraph","class":"ck-heading_paragraph"},{"model":"heading1","view":"h1","title":"Heading 1","class":"ck-heading_heading1"},{"model":"heading2","view":"h2","title":"Heading 2","class":"ck-heading_heading2"},{"model":"heading3","view":"h3","title":"Heading 3","class":"ck-heading_heading3"}],"image":false}};
+
+(function () {
+    'use strict';
+
+    const trans = (key, params = {}, domain = 'messages') => {
+        if (typeof Translator !== 'undefined' && typeof Translator.trans === 'function') {
+            return Translator.trans(key, params, domain);
+        }
+        return key.split('.').pop();
+    };
+
+    const HIDE_LICENSE_NOTIFICATION_CSS = `
+        .ck-body-wrapper > .ck.ck-notification__message { display: none !important; }
+        .ck-powered-by { display: none !important; }
+        .ck-color-selector__color-picker{ display: none !important; }
+        .ck-editor__editable_inline { min-height: 150px !important; }
+    `;
+
+    function injectLicenseHideCSS() {
+        if (!document.querySelector('#ckeditor-hide-license-style')) {
+            const style = document.createElement('style');
+            style.id = 'ckeditor-hide-license-style';
+            style.textContent = HIDE_LICENSE_NOTIFICATION_CSS;
+            document.head.append(style);
+        }
+    }
+
+    injectLicenseHideCSS();
+
+    function getFileIcon(fileName) {
+        const ext = fileName.split('.').pop().toLowerCase();
+        const icons = {
+            'pdf': '📄', 'doc': '📝', 'docx': '📝', 'xls': '📊', 'xlsx': '📊',
+            'ppt': '📽️', 'pptx': '📽️', 'txt': '📋', 'odt': '📝', 'rtf': '📝',
+            'tex': '📐', 'latex': '📐'
+        };
+        return icons[ext] || '📎';
+    }
+
+    let alertUtil = new AlertUtil();
+
+    function createCustomButtonPlugin(uploadRoute) {
+        return function (editor) {
+            editor.ui.componentFactory.add('customFileButton', () => {
+                const boldButton = editor.ui.componentFactory.create('bold');
+                const ButtonClass = boldButton.constructor;
+                const button = new ButtonClass();
+
+                const uploadLabel = trans('ckeditor.buttons.upload_file');
+
+                button.set({
+                    label: uploadLabel,
+                    icon: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 8.5V3h-3v5.5H3v3h5.5V17h3v-5.5H17v-3z"/></svg>',
+                    tooltip: true
+                });
+
+                button.on('execute', () => {
+                    if (!uploadRoute) return;
+
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.style.display = 'none';
+                    document.body.appendChild(input);
+
+                    input.onchange = function () {
+                        const file = input.files[0];
+                        if (!file) {
+                            document.body.removeChild(input);
+                            return;
+                        }
+                        const formData = new FormData();
+                        formData.append('upload', file);
+
+                        button.isEnabled = false;
+
+                        fetch(uploadRoute, {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(response => response.text())
+                            .then(text => {
+                                if (text.startsWith('{')) {
+                                    const jsonResponse = JSON.parse(text);
+                                    if (jsonResponse.files && jsonResponse.files[0] && jsonResponse.files[0].error) {
+                                        let errorMessage = jsonResponse.files[0].error;
+                                        errorMessage = decodeUnicodeString(errorMessage);
+                                        throw new Error(errorMessage);
+                                    }
+                                    if (jsonResponse.filepath) return jsonResponse;
+                                }
+                                return {filepath: text.trim()};
+                            })
+                            .then(result => {
+                                const fileUrl = result.filepath || result.url || result.file || result.path ||
+                                    (result.files && result.files[0] && result.files[0].url);
+
+                                if (fileUrl) {
+                                    const fileName = file.name;
+                                    const icon = getFileIcon(fileName);
+                                    const linkHtml = `<a href="${fileUrl}" target="_blank">${icon} ${fileName}</a>&nbsp;`;
+
+                                    const viewFragment = editor.data.processor.toView(linkHtml);
+                                    const modelFragment = editor.data.toModel(viewFragment);
+                                    editor.model.insertContent(modelFragment);
+                                }
+                            })
+                            .catch((error) => {
+                                alertUtil.showErrorSwal(error.message);
+                            })
+                            .finally(() => {
+                                button.set('label', uploadLabel);
+                                button.isEnabled = true;
+                                document.body.removeChild(input);
+                            });
+                    };
+                    input.click();
+                });
+
+                return button;
+            });
+        };
+    }
+
+    function createTableWithoutFigurePlugin() {
+        return function (editor) {
+            editor.conversion.for('dataDowncast').add(dispatcher => {
+                dispatcher.on('insert:table', (evt, data, conversionApi) => {
+                    const viewWriter = conversionApi.writer;
+                    const tableElement = conversionApi.mapper.toViewElement(data.item);
+
+                    if (tableElement) {
+                        viewWriter.addClass(['table', 'content-table'], tableElement);
+                    }
+                }, {priority: 'low'});
+            });
+
+            editor.data.on('get', (evt) => {
+                let data = evt.return;
+                if (data && typeof data === 'string') {
+                    data = data.replace(
+                        /<figure[^>]*class="[^"]*table[^"]*"[^>]*>\s*(<table[^>]*>[\s\S]*?<\/table>)\s*<\/figure>/gi,
+                        function (match, tableContent) {
+                            if (!tableContent.includes('class=')) {
+                                return tableContent.replace('<table', '<table class="table content-table"');
+                            }
+                            return tableContent;
+                        }
+                    );
+                    evt.return = data;
+                }
+            }, {priority: 'low'});
+        };
+    }
+
+    function createPasteColorStripperPlugin() {
+        return function (editor) {
+            editor.editing.view.document.on('clipboardInput', (evt, data) => {
+                const dataTransfer = data.dataTransfer;
+                const html = dataTransfer.getData('text/html');
+
+                if (html) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+
+                    const elements = tempDiv.querySelectorAll('*');
+                    elements.forEach(el => {
+                        el.removeAttribute('style');
+                        el.removeAttribute('color');
+                        el.removeAttribute('bgcolor');
+                        el.removeAttribute('background');
+                        if (el.className && el.className.indexOf('Mso') !== -1) {
+                            el.removeAttribute('class');
+                        }
+                    });
+
+                    data.content = editor.data.processor.toView(tempDiv.innerHTML);
+                }
+            }, {priority: 'high'});
+        };
+    }
+
+    function decodeUnicodeString(str) {
+        try {
+            let decoded = str.replace(/\\u([0-9a-fA-F]{4})/g, function (match, grp) {
+                return String.fromCharCode(parseInt(grp, 16));
+            });
+            return decoded.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        } catch (e) {
+            return str;
+        }
+    }
+
+    function buildEditorConfig(presetName) {
+        const preset = window.CKEditorPresets[presetName] || window.CKEditorPresets.standard;
+
+        const config = {
+            placeholder: '',
+            toolbar: {items: preset.toolbar},
+            fontColor: {
+                colors: [
+                    {color: '#FF0000', label: trans('ckeditor.colors.red')},
+                    {color: '#FF6600', label: trans('ckeditor.colors.orange')},
+                    {color: '#800080', label: trans('ckeditor.colors.purple')}
+                ],
+                columns: 3,
+                documentColors: 0
+            },
+            fontBackgroundColor: {
+                colors: [
+                    {color: '#FF0000', label: trans('ckeditor.colors.red')},
+                    {color: '#FF6600', label: trans('ckeditor.colors.orange')},
+                    {color: '#800080', label: trans('ckeditor.colors.purple')}
+                ],
+                columns: 3,
+                documentColors: 0
+            },
+            removePlugins: [
+                'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+                'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
+                'TrackChanges', 'TrackChangesData', 'RevisionHistory', 'WProofreader',
+                'DocumentOutline', 'MathType', 'AIAssistant', 'CKBox', 'CKFinder',
+                'EasyImage', 'MultiLevelList', 'Pagination', 'PasteFromOfficeEnhanced',
+                'SlashCommand', 'TableOfContents', 'Template', 'FormatPainter',
+                'CaseChange', 'Base64UploadAdapter',
+                'LicenseNotification', 'ListProperties', 'PasteFromOffice'
+            ]
+        };
+        if (preset.heading && preset.headingOptions && preset.headingOptions.length > 0) {
+            config.heading = {options: preset.headingOptions};
+        }
+        if (preset.image) {
+            config.image = {
+                toolbar: [
+                    'imageTextAlternative', '|',
+                    'imageStyle:wrapText', '|',
+                    'resizeImage'
+                ]
+            };
+        }
+        config.table = {
+            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
+            tableProperties: {
+                defaultProperties: {
+                    borderStyle: 'solid', borderColor: '#ddd', borderWidth: '1px'
+                }
+            },
+            tableCellProperties: {
+                defaultProperties: {padding: '10px'}
+            }
+        };
+        return config;
+    }
+
+    const createUploadPlugin = function (uploadRoute) {
+        return function (editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return {
+                    upload() {
+                        return loader.file.then(file => new Promise((resolve, reject) => {
+                            const data = new FormData();
+                            data.append('upload', file);
+
+                            fetch(uploadRoute, {
+                                method: 'POST',
+                                body: data
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.text().then(text => {
+                                            throw new Error(text);
+                                        });
+                                    }
+                                    return response.json();
+                                })
+                                .then(result => {
+                                    if (result.filepath) resolve({default: result.filepath});
+                                    else if (result.url) resolve({default: result.url});
+                                    else reject('No URL in response');
+                                })
+                                .catch(error => reject(error.message));
+                        }));
+                    },
+                    abort() {
+                    }
+                };
+            };
+        };
+    };
+
+    function initCKEditorInContainer(container) {
+        container = container || document;
+        if (typeof CKEDITOR === 'undefined' || typeof CKEDITOR.ClassicEditor === 'undefined') {
+            return;
+        }
+
+        const textareas = container.querySelectorAll('textarea.ckeditor-field');
+        if (textareas.length === 0) return;
+
+        const routeMap = {};
+        textareas.forEach(textarea => {
+            const uploadType = textarea.dataset.uploadRoute;
+            if (uploadType && !routeMap[uploadType]) {
+                const locale = document.documentElement.lang || 'tr';
+                routeMap[uploadType] = `/${locale}/_uploader/${uploadType}/upload`;
+            }
+        });
+
+        const allEditors = [];
+        textareas.forEach((textarea, index) => {
+            if (textarea.dataset.ckeditorInitialized === 'true') return;
+
+            const presetName = textarea.dataset.editorPreset || 'standard';
+            const preset = window.CKEditorPresets[presetName];
+            if (!preset) return;
+
+            const uploadType = textarea.dataset.uploadRoute;
+            const uploadRoute = uploadType ? routeMap[uploadType] : null;
+            const hasImageUpload = preset.image && uploadRoute;
+
+            const editorId = 'ckeditor-field-' + index + '-' + Date.now();
+            const editorDiv = document.createElement('div');
+            editorDiv.id = editorId;
+            editorDiv.innerHTML = textarea.value || '';
+
+            textarea.style.display = 'none';
+            textarea.dataset.ckeditorInitialized = 'true';
+            textarea.parentNode.insertBefore(editorDiv, textarea);
+
+            const editorConfig = buildEditorConfig(presetName);
+            editorConfig.extraPlugins = [];
+
+            if (hasImageUpload) {
+                editorConfig.extraPlugins.push(createUploadPlugin(uploadRoute));
+                editorConfig.simpleUpload = {uploadUrl: uploadRoute};
+            }
+
+            if (uploadRoute) {
+                editorConfig.extraPlugins.push(createCustomButtonPlugin(uploadRoute));
+            }
+
+            editorConfig.extraPlugins.push(createTableWithoutFigurePlugin());
+            editorConfig.extraPlugins.push(createPasteColorStripperPlugin());
+
+            CKEDITOR.ClassicEditor.create(editorDiv, editorConfig)
+                .then(editor => {
+                    allEditors.push({editor, textarea});
+                    textarea.ckeditorInstance = editor;
+
+                    const editable = editor.ui.view.editable.element;
+                    const minHeight = preset.minHeight + 'px';
+
+                    editable.style.minHeight = minHeight;
+                    editable.style.setProperty('min-height', minHeight, 'important');
+
+                    editor.editing.view.document.on('focus', () => editable.style.setProperty('min-height', minHeight, 'important'));
+                    editor.editing.view.document.on('blur', () => editable.style.setProperty('min-height', minHeight, 'important'));
+
+                    const removeColorPicker = () => {
+                        const pickers = document.querySelectorAll('.ck-color-selector__color-picker, .ck-color-selector__remove-color');
+                        pickers.forEach(picker => picker.remove());
+                    };
+                    setTimeout(removeColorPicker, 100);
+
+                    const colorButtons = editor.ui.view.element.querySelectorAll('.ck-button[class*="fontcolor"], .ck-button[class*="fontbackgroundcolor"]');
+                    colorButtons.forEach(btn => {
+                        btn.addEventListener('mousedown', () => setTimeout(removeColorPicker, 50));
+                    });
+
+                    editor.model.document.on('change:data', () => {
+                        textarea.value = editor.getData();
+                        editable.style.setProperty('min-height', minHeight, 'important');
+                    });
+                })
+                .catch(() => {
+                    textarea.style.display = 'block';
+                    editorDiv.remove();
+                    textarea.dataset.ckeditorInitialized = 'false';
+                });
+        });
+
+        const forms = container.querySelectorAll('form');
+        forms.forEach(form => {
+            if (form.dataset.ckeditorFieldSyncAttached === 'true') return;
+            form.addEventListener('submit', function () {
+                allEditors.forEach(({editor, textarea}) => {
+                    try {
+                        textarea.value = editor.getData();
+                    } catch (error) {
+                    }
+                });
+            }, false);
+            form.dataset.ckeditorFieldSyncAttached = 'true';
+        });
+    }
+
+    window.initCKEditorInContainer = initCKEditorInContainer;
+
+    window.initCKEditorFields = function () {
+        window.addEventListener('load', function () {
+            initCKEditorInContainer(document);
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initCKEditorFields();
+    });
+})(); </script>
 
 
     <script>
