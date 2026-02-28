@@ -608,233 +608,9 @@ div.stBottomBlockContainer {
 }
 
 /* =========================================
-   ARTICLE CARD COMPONENT CLASSES
-========================================= */
-.brutalist-card {
-    background-color: #111;
-    padding: 25px;
-    border-radius: 0;
-    margin-bottom: 20px;
-    word-break: break-word;
-    /* Prevent long titles from forcing horizontal scroll */
-}
-
-.brutalist-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    gap: 15px;
-    /* Spacing between title and DOI badge */
-}
-
-.brutalist-card-title {
-    margin: 0;
-    padding: 0;
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 1px;
-    color: #FFF;
-    font-size: 2.2rem;
-    line-height: 1.1;
-    flex: 1;
-    /* Take up remaining space */
-}
-
-.doi-badge {
-    background-color: #050505;
-    color: #CCFF00;
-    padding: 5px 12px;
-    border: 2px solid #CCFF00;
-    font-family: 'Space Mono', monospace;
-    font-size: 1.05rem;
-    font-weight: bold;
-    white-space: nowrap;
-    /* Keep DOI on one line if possible */
-    height: fit-content;
-    box-shadow: 4px 4px 0px #050505;
-    flex-shrink: 0;
-    /* Prevent DOI badge from shrinking */
-}
-
-.brutalist-card-meta {
-    color: #00D2FF;
-    font-family: 'Space Mono', monospace;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-bottom: 2px dashed #444;
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    /* Allow wrapping on small screens */
-    gap: 10px;
-    align-items: center;
-}
-
-.brutalist-card-summary {
-    color: #CCC;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    font-family: 'Space Mono', monospace;
-    margin-bottom: 20px;
-}
-
-/* Action Badges (Compact buttons for external links) */
-.action-badges-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.action-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none !important;
-    font-family: 'Space Mono', monospace;
-    font-weight: bold;
-    font-size: 0.95rem;
-    padding: 8px 15px;
-    border: 2px solid;
-    box-shadow: 3px 3px 0px #050505;
-    transition: all 0.2s ease-in-out;
-    text-transform: uppercase;
-}
-
-.action-badge:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px #050505;
-}
-
-.badge-original {
-    background-color: #050505;
-    color: #FFF;
-    border-color: #00D2FF;
-}
-
-.badge-none {
-    background-color: #111;
-    color: #555;
-    border-color: #333;
-    pointer-events: none;
-    box-shadow: none;
-}
-
-.badge-scihub {
-    background-color: #CCFF00;
-    color: #050505;
-    border-color: #050505;
-}
-
-.badge-annas {
-    background-color: #FF0055;
-    color: #FFF;
-    border-color: #050505;
-}
-
-.badge-libgen {
-    background-color: #FF8800;
-    color: #FFF;
-    border-color: #050505;
-}
-
-/* =========================================
    MOBILE RESPONSIVENESS (PWA & PHONES)
 ========================================= */
 @media (max-width: 768px) {
-
-    /* Shrink the giant brutalist logo */
-    .logo-container {
-        margin-top: 4vh !important;
-        margin-bottom: 2rem !important;
-    }
-
-    .logo-text {
-        font-size: 3.5rem !important;
-        /* Smaller for mobile to prevent overflow */
-        text-shadow: 4px 4px 0px #00D2FF, -2px -2px 0px #CCFF00 !important;
-    }
-
-    .shift-left {
-        transform: none !important;
-        /* Center properly on mobile */
-        display: block !important;
-        text-align: center !important;
-    }
-
-    .logo-subtext {
-        font-size: 0.85rem !important;
-        margin-top: -10px !important;
-        padding: 4px 8px !important;
-        box-shadow: 2px 2px 0px #00D2FF !important;
-    }
-
-    /* Adjust Search Input for Mobile */
-    [data-testid="stTextInput"] div[data-baseweb="input"] {
-        padding: 12px 16px !important;
-        min-height: 60px !important;
-        box-shadow: 4px 4px 0px #00D2FF !important;
-    }
-
-    [data-testid="stTextInput"] input {
-        font-size: 1.1rem !important;
-        padding: 0 40px 0 5px !important;
-    }
-
-    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-        transform: translate(-2px, -2px) !important;
-        box-shadow: 6px 6px 0px #00D2FF !important;
-    }
-
-    [data-testid="stTextInput"] div[data-baseweb="input"]:has(input[placeholder="Mühendislik literatüründe arayın..."])::after {
-        right: 15px !important;
-        font-size: 1.5rem !important;
-    }
-
-    /* Adjust Expanders and Metric Cards */
-    [data-testid="stExpander"],
-    .metric-card,
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(.export-header),
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(.feedback-header) {
-        padding: 1rem !important;
-        margin-top: 1.5rem !important;
-        border-width: 2px !important;
-        box-shadow: 4px 4px 0px #00D2FF !important;
-    }
-
-    .metric-card h3 {
-        font-size: 2.5rem !important;
-    }
-
-    .export-header {
-        font-size: 2rem !important;
-        text-shadow: 2px 2px 0px #00D2FF !important;
-    }
-
-    /* Touch Targets for Mobile (min 44px height for accessibility) */
-    .stButton>button,
-    [data-testid="stFormSubmitButton"]>button,
-    [data-testid="stLinkButton"]>a,
-    div[data-testid="stDownloadButton"]>button {
-        font-size: 1.2rem !important;
-        padding: 12px 16px !important;
-        /* Guarantee > 44px height */
-        box-shadow: 4px 4px 0px #00D2FF !important;
-        border-width: 2px !important;
-        word-break: break-word !important;
-        white-space: normal !important;
-        /* Allow button text to wrap if too long */
-        height: auto !important;
-    }
-
-    .stButton>button:hover,
-    [data-testid="stFormSubmitButton"]>button:hover,
-    [data-testid="stLinkButton"]>a:hover,
-    div[data-testid="stDownloadButton"]>button:hover {
-        box-shadow: 6px 6px 0px #00D2FF !important;
-        transform: translate(-1px, -1px) !important;
-    }
 
     /* Fix Chat Button Overlapping on Mobile Text Area */
     [data-testid="stChatInput"] textarea {
@@ -867,56 +643,57 @@ div.stBottomBlockContainer {
     }
 
     /* Article Card Mobile Fixes */
-    .brutalist-card {
-        padding: 15px;
-        /* Less padding on mobile */
+    .article-card-box {
+        padding: 15px !important;
     }
 
-    .brutalist-card-header {
-        flex-direction: column;
-        /* Stack TITLE and DOI on mobile to prevent vertical word wrap */
-        align-items: flex-start;
-        gap: 10px;
+    .article-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
     }
 
-    .brutalist-card-title {
-        font-size: 1.8rem;
-        /* Slightly smaller title on mobile */
+    .article-title {
+        font-size: 1.8rem !important;
     }
 
-    .doi-badge {
+    .article-doi {
         margin-left: 0 !important;
-        white-space: normal;
-        /* Allow DOI to wrap if absurdly long */
-        word-break: break-all;
+        white-space: normal !important;
+        word-break: break-all !important;
     }
 
-    .brutalist-card-meta {
-        font-size: 0.95rem;
-        /* Smaller meta info */
-        flex-direction: column;
-        /* Stack meta info to prevent horizontal overflow */
-        align-items: flex-start;
-        gap: 5px;
+    .article-meta {
+        font-size: 0.95rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 5px !important;
     }
 
-    .brutalist-card-meta span.separator {
-        display: none;
-        /* Hide the | separator on mobile since they stack */
+    .meta-sep {
+        display: none !important;
     }
 
-    .action-badges-container {
-        justify-content: stretch;
+    /* Wrap Streamlit link buttons so they don't scroll infinitely vertically */
+    .article-buttons-wrapper+div[data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
     }
 
-    .action-badge {
-        flex: 1 1 100%;
-        /* Make badges take full width on mobile for easy tapping, or keep them wrap. Let's make them wrap nicely. */
-        flex: 1 1 calc(50% - 5px);
-        /* Two columns of badges on mobile */
-        text-align: center;
-        font-size: 0.85rem;
-        padding: 10px 5px;
+    .article-buttons-wrapper+div[data-testid="stHorizontalBlock"]>div {
+        width: calc(50% - 5px) !important;
+        min-width: 0 !important;
+    }
+
+    .article-buttons-wrapper+div[data-testid="stHorizontalBlock"]>div:last-child {
+        width: 100% !important;
+    }
+
+    .article-buttons-wrapper+div[data-testid="stHorizontalBlock"] button,
+    .article-buttons-wrapper+div[data-testid="stHorizontalBlock"] a {
+        padding: 10px !important;
+        font-size: 0.85rem !important;
     }
 
     /* Export container override */
