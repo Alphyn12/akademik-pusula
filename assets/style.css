@@ -584,10 +584,10 @@ div[data-testid="stChatMessage"]:nth-child(odd) {
     box-shadow: 6px 6px 0px #00D2FF !important;
 }
 
-/* Chat Input Box (The bottom bar) */
 [data-testid="stChatInput"] {
     background-color: #050505 !important;
-    padding: 15px 30px !important;
+    padding: 8px 30px !important;
+    /* Reduced for a more compact height */
     border-top: 4px solid #CCFF00 !important;
     position: fixed !important;
     bottom: 0 !important;
@@ -601,11 +601,18 @@ div[data-testid="stChatMessage"]:nth-child(odd) {
 div.stBottomBlockContainer {
     background: transparent !important;
     background-color: transparent !important;
-    padding-bottom: 0 !important;
+    padding-bottom: 250px !important;
+    /* Heavily increased to ensure scroll-to-bottom works */
+}
+
+/* Ensure global app container has enough padding */
+[data-testid="stAppViewContainer"] .main .block-container {
+    padding-bottom: 250px !important;
 }
 
 [data-testid="stChatInput"]>div {
-    max-width: 900px !important;
+    max-width: 1400px !important;
+    /* Increased from 900px for better width */
     margin: 0 auto !important;
 }
 
@@ -615,11 +622,14 @@ div.stBottomBlockContainer {
     border-radius: 0px !important;
     color: #FFF !important;
     font-family: 'Space Mono', monospace !important;
-    font-size: 1.2rem !important;
-    padding: 1.2rem 60px 1.2rem 1.2rem !important;
+    font-size: 1.1rem !important;
+    /* Slightly smaller for compactness */
+    padding: 0.8rem 60px 0.8rem 1rem !important;
+    /* Reduced padding for height */
     /* Space for the button on right */
     box-shadow: 8px 8px 0px #00D2FF !important;
-    min-height: 65px !important;
+    min-height: 45px !important;
+    /* Reduced for a sleeker look */
 }
 
 [data-testid="stChatInput"] textarea:focus {
