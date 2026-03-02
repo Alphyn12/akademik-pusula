@@ -22,7 +22,7 @@ class OpenAlexScraper(BaseScraper):
             # Using polite pool by providing an email in User-Agent is recommended.
 
             url = f"https://api.openalex.org/works?search={urllib.parse.quote(query)}"
-            url += f"&filter=publication_year:{start_year}-{end_year}"
+            url += f"&filter=publication_year:{start_year}-{end_year},language:en|tr"
             
             # Limit to 15 results
             url += "&per-page=15"

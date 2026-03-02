@@ -1,0 +1,1081 @@
+diff --git a/api_services/ieee.py b/api_services/ieee.py
+deleted file mode 100644
+index 231f9ad..0000000
+--- a/api_services/ieee.py
++++ /dev/null
+@@ -1,95 +0,0 @@
+-import aiohttp
+-import urllib.parse
+-from typing import List, Dict, Any
+-import streamlit as st
+-from utils.scraper_base import BaseScraper
+-import asyncio
+-
+-class IEEEScraper(BaseScraper):
+-    def __init__(self):
+-        super().__init__("IEEE Xplore")
+-        
+-    async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
+-        results = []
+-        try:
+-            start_year = filters.get('start_year', 1990)
+-            end_year = filters.get('end_year', 2026)
+-            
+-            api_key = self.get_config("ieee", "api_key")
+-            if not api_key:
+-                return {
+-                    "source": self.name,
+-                    "status": "error",
+-                    "message": "IEEE API Key (.streamlit/secrets.toml veya Environment Variable) tanımlanmamış.",
+-                    "data": []
+-                }
+-                
+-            url = f"http://ieeexploreapi.ieee.org/api/v1/search/articles?querytext={urllib.parse.quote(query)}&apikey={api_key}&max_records=15"
+-            
+-            async with aiohttp.ClientSession() as session:
+-                async with session.get(url, timeout=10) as response:
+-                    if response.status == 200:
+-                        data = await response.json()
+-                        articles = data.get('articles', [])
+-                        for article in articles:
+-                            try:
+-                                title = article.get('title', 'Bilinmiyor')
+-                                
+-                                year = "Bilinmiyor"
+-                                pub_year = str(article.get('publication_year', ''))
+-                                if pub_year.isdigit():
+-                                    year = pub_year
+-                                    
+-                                if str(year).isdigit() and not (start_year <= int(year) <= end_year):
+-                                    continue
+-                                    
+-                                authors_dict = article.get('authors', {})
+-                                authors_list = authors_dict.get('authors', []) if isinstance(authors_dict, dict) else []
+-                                authors = ", ".join([a.get('full_name', '') for a in authors_list]) if authors_list else "Bilinmiyor"
+-                                
+-                                doi = article.get('doi', '-')
+-                                is_oa = article.get('is_open_access', False)
+-                                status = "Açık" if is_oa else "Kilitli"
+-                                
+-                                abstract = article.get('abstract', 'Özet bulunamadı.')
+-                                
+-                                link = article.get('html_url', article.get('pdf_url', '-'))
+-                                if link == "-" and doi != "-":
+-                                    link = f"https://doi.org/{doi}"
+-                                    
+-                                results.append({
+-                                    "Kaynak": self.name, "Yıl": year, "Başlık": title,
+-                                    "Yazarlar": authors, "Erişim Durumu": status,
+-                                    "DOI": doi, "Link": link, "Özet": abstract
+-                                })
+-                            except Exception as item_e:
+-                                self.logger.warning(f"Error parsing ieee item: {item_e}")
+-                                continue
+-                    elif response.status == 401 or response.status == 403:
+-                         return {
+-                            "source": self.name,
+-                            "status": "error",
+-                            "message": "IEEE API Key geçersiz veya süresi dolmuş. Yetkilendirme hatası.",
+-                            "data": []
+-                        }
+-            return {
+-                "source": self.name,
+-                "status": "success",
+-                "message": "",
+-                "data": results
+-            }
+-        except asyncio.TimeoutError:
+-            return {
+-                "source": self.name,
+-                "status": "error",
+-                "message": "İstek zaman aşımına uğradı.",
+-                "data": []
+-            }
+-        except Exception as e:
+-            self.logger.error(f"IEEE Error: {str(e)}")
+-            return {
+-                "source": self.name,
+-                "status": "error",
+-                "message": f"Beklenmeyen bir hata oluştu: {str(e)}",
+-                "data": []
+-            }
+diff --git a/api_services/openalex.py b/api_services/openalex.py
+index c86ca06..503fe89 100644
+--- a/api_services/openalex.py
++++ b/api_services/openalex.py
+@@ -22,7 +22,7 @@ class OpenAlexScraper(BaseScraper):
+             # Using polite pool by providing an email in User-Agent is recommended.
+ 
+             url = f"https://api.openalex.org/works?search={urllib.parse.quote(query)}"
+-            url += f"&filter=publication_year:{start_year}-{end_year}"
++            url += f"&filter=publication_year:{start_year}-{end_year},language:en|tr"
+             
+             # Limit to 15 results
+             url += "&per-page=15"
+diff --git a/app.py b/app.py
+index 6ec0362..615113b 100644
+--- a/app.py
++++ b/app.py
+@@ -86,23 +86,47 @@ if "view_mode" not in st.session_state:
+     st.session_state.view_mode = "search"
+ 
+ if st.session_state.view_mode == "focus":
+-    from utils.ai_manager import chat_with_paper_consensus
++    from utils.ai_manager import chat_with_paper_consensus, fetch_full_text_jina
+     import asyncio
+     
+     paper = st.session_state.get("selected_paper", {})
+     
+-    # "Geri Dön" button at the very top of focus mode
+-    if st.button("🔙 Geri Dön (Arama Sonuçları)", key="back_btn"):
+-        st.session_state.view_mode = "search"
+-        st.rerun()
++    # Focus Mode View
++    # View mode logic continues directly to rendering the targeted article card
+         
+     from components.ui_components import render_article_card
+     render_article_card(paper, index=0, is_focus_mode=True)
+         
+     st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
+     
++    # Check if Full Text was requested
++    is_deep_analysis = st.session_state.get("force_full_text", False)
++    
++    if is_deep_analysis and "full_text" not in st.session_state:
++        st.markdown("""
++        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(5,5,5,0.95); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
++            <h1 style="color: #CCFF00; font-family: 'Anton', sans-serif; font-size: 4rem; text-shadow: 4px 4px 0px #00D2FF; margin-bottom: 20px; text-align: center;">🏛️ AKADEMİK KURUL TOPLANIYOR...</h1>
++            <p style="color: #FFF; font-family: 'Space Mono', monospace; font-size: 1.5rem; text-align: center; max-width: 800px;">Lütfen Bekleyin. Jina AI makalenin tam metni çıkarırken biraz zaman alabilir.</p>
++            <div class="loader" style="border: 8px solid #333; border-top: 8px solid #CCFF00; border-radius: 50%; width: 80px; height: 80px; animation: spin 1s linear infinite; margin-top: 3rem;"></div>
++            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
++        </div>
++        """, unsafe_allow_html=True)
++        with st.spinner("Jina AI ile makalenin tam metni çekiliyor... (Bu işlem sayfa boyutuna göre 10-30 saniye sürebilir)"):
++            url_to_scrape = paper.get('Link') if str(paper.get('Link', '')) != '-' else paper.get('DOI', '-')
++            full_text = asyncio.run(fetch_full_text_jina(str(url_to_scrape)))
++            st.session_state.full_text = full_text
++            st.rerun() # Force rerun to remove overlay and show the chat correctly
++            
+     # Consensus Engine Briefing & Chat Container
+-    st.markdown("<h3 style='font-family:\"Anton\", sans-serif; color:#00D2FF; letter-spacing:2px;'>🏛️ AI GENEL KURUL BRİFİNGİ VE SOHBET</h3>", unsafe_allow_html=True)
++    header_title = "🧠 TAM METİN ÜZERİNDEN AI KURUL ANALİZİ" if is_deep_analysis else "🏛️ AI GENEL KURUL BRİFİNGİ VE SOHBET (ÖZET ÜZERİNDEN)"
++    st.markdown(f"<h3 style='font-family:\"Anton\", sans-serif; color:#00D2FF; letter-spacing:2px;'>{header_title}</h3>", unsafe_allow_html=True)
++    
++    if is_deep_analysis and "full_text" in st.session_state:
++        with st.expander("Jina AI Tarafından Çekilen Ham Metni Gör:", expanded=False):
++            st.text(st.session_state.full_text[:3000] + "\n\n... (Metin uzun olduğu için kırpıldı) ...")
++    
++    # Determine the context to send to the AI
++    active_abstract_or_text = st.session_state.full_text if is_deep_analysis and "full_text" in st.session_state else str(paper.get('Özet', ''))
+     
+     # Initialize Chat History if empty
+     if "chat_history" not in st.session_state:
+@@ -110,11 +134,11 @@ if st.session_state.view_mode == "focus":
+         
+     # Auto-Briefing (First interaction is an empty query synthesized to a summary request)
+     if not st.session_state.chat_history:
+-        with st.spinner("Genel Kurul toplanıyor ve makale sentezleniyor..."):
+-            initial_prompt = "Lütfen makalenin ana amacını, kullanılan yöntemleri, kilit teknik verileri (parametre, cihaz, istatistik) ve olası sınırlandırmaları içeren kısa bir genel kurul brifingi ver."
++        with st.spinner("Genel Kurul toplanıyor ve metin sentezleniyor..."):
++            initial_prompt = "Lütfen sağlanan metnin ana amacını, kullanılan yöntemleri, kilit teknik verileri (parametre, cihaz, istatistik) ve olası sınırlandırmaları içeren kısa bir genel kurul brifingi ver."
+             response = asyncio.run(chat_with_paper_consensus(
+                 paper_title=str(paper.get('Başlık', '')),
+-                paper_abstract=str(paper.get('Özet', '')),
++                paper_abstract=active_abstract_or_text,
+                 user_question=initial_prompt
+             ))
+             st.session_state.chat_history.append({"role": "assistant", "content": response})
+@@ -125,7 +149,8 @@ if st.session_state.view_mode == "focus":
+             st.markdown(message["content"])
+             
+     # Chat Input for interactive querying
+-    if prompt := st.chat_input("Bu makale hakkında spesifik bir soru sorun... (Örn: Hangi soğutma sıvısı kullanılmış?)"):
++    placeholder_text = "Tüm makale metni içinde arayın..." if is_deep_analysis else "Özet üzerinden spesifik bir soru sorun..."
++    if prompt := st.chat_input(placeholder_text):
+         st.session_state.chat_history.append({"role": "user", "content": prompt})
+         with st.chat_message("user"):
+             st.markdown(prompt)
+@@ -134,12 +159,55 @@ if st.session_state.view_mode == "focus":
+             with st.spinner("Genel Kurul makineden veri çekip tartışıyor..."):
+                 answer = asyncio.run(chat_with_paper_consensus(
+                     paper_title=str(paper.get('Başlık', '')),
+-                    paper_abstract=str(paper.get('Özet', '')),
++                    paper_abstract=active_abstract_or_text,
+                     user_question=prompt
+                 ))
+                 st.markdown(answer)
+         st.session_state.chat_history.append({"role": "assistant", "content": answer})
+ 
++elif st.session_state.view_mode == "global_chat":
++    # --- GLOBAL CHAT MODE (INDEPENDENT) ---
++    import asyncio
++    from utils.ai_manager import chat_with_paper_consensus
++    
++    st.markdown("<h3 style='font-family:\"Anton\", sans-serif; color:#CCFF00; letter-spacing:2px;'>🏛️ BAĞIMSIZ AI DANIŞMANI (GENEL KURUL)</h3>", unsafe_allow_html=True)
++    
++    if st.button("🔙 GERİ DÖN (ARAMA SONUÇLARI)", key="back_btn_global", use_container_width=True):
++        st.session_state.view_mode = "search"
++        if "chat_history_global" in st.session_state:
++            del st.session_state.chat_history_global
++        st.rerun()
++
++    st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
++    
++    # Initialize Global Chat History if empty
++    if "chat_history_global" not in st.session_state:
++        st.session_state.chat_history_global = [
++            {"role": "assistant", "content": "Merhaba! Ben Akademik Pusula Genel Kurulu. Mühendislik kütüphaneleri, literatür taraması, veya herhangi bir akademik/teknik konu hakkında bana danışabilirsiniz. Size nasıl yardımcı olabilirim?"}
++        ]
++            
++    # Display Chat History
++    for message in st.session_state.chat_history_global:
++        with st.chat_message(message["role"]):
++            st.markdown(message["content"])
++            
++    # Chat Input for interactive querying
++    if prompt := st.chat_input("Genel Kurula akademik veya teknik bir soru sorun..."):
++        st.session_state.chat_history_global.append({"role": "user", "content": prompt})
++        with st.chat_message("user"):
++            st.markdown(prompt)
++            
++        with st.chat_message("assistant"):
++            with st.spinner("Genel Kurul toplanıyor ve sorunuzu değerlendiriyor..."):
++                # Pass a general context so the agents use their AI fallback/general knowledge mode
++                answer = asyncio.run(chat_with_paper_consensus(
++                    paper_title="Bağımsız Mühendislik ve Akademik Danışmanlık",
++                    paper_abstract="Bu bir bağımsız danışmanlık oturumudur. Özel bir makale sunulmamıştır. Kullanıcının sorusuna tamamen devasa mühendislik kültürünü ve akademik bilgini ('💡 BAĞIMSIZ AI YORUMU' olarak veya genel bilgi olarak) kullanarak yanıt ver.",
++                    user_question=prompt
++                ))
++                st.markdown(answer)
++        st.session_state.chat_history_global.append({"role": "assistant", "content": answer})
++
+ else:
+     # ------------------ SEARCH MODE ------------------
+     # Main Form Wrapper to center contents
+@@ -158,7 +226,7 @@ else:
+             with st.expander("⚙️ Tarama Seçenekleri ve Sci-Hub Ayarları", expanded=True):
+                 ecol1, ecol2 = st.columns(2)
+                 with ecol1:
+-                    db_options = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "IEEE Xplore", "Elsevier (ScienceDirect)", "Springer", "ASME"]
++                    db_options = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "Elsevier (ScienceDirect)", "Springer", "ASME"]
+                     default_dbs = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "ASME"]
+                     sources = st.multiselect("Veritabanları", 
+                                              db_options,
+@@ -169,6 +237,7 @@ else:
+                     sci_hub_base = st.text_input("Sci-Hub Domain URL", value="https://sci-hub.ist")
+                     language = st.multiselect("Sorgu Dili", ["İngilizce", "Türkçe"], default=["Türkçe", "İngilizce"])
+                     show_only_locked = st.toggle("Sadece Kilitli/Sci-Hub'lık Olanları Göster", value=False)
++                    exact_match_only = st.toggle("Tam Eşleşme (Sadece başlık/özette bu kelimeyi içerenler)", value=False)
+                     
+             st.markdown("<span class='start-btn-anchor'></span>", unsafe_allow_html=True)
+             
+@@ -216,12 +285,51 @@ else:
+                 def fetch_data_cached(sources_list, q, filters_dict):
+                     import asyncio
+                     from utils.fetcher import fetch_all_sources
++                    from utils.ai_manager import translate_query
++                    
++                    async def run_fetch():
++                        selected_langs = filters_dict.get('language', [])
++                        
++                        # 1) Sadece Türkçe seçiliyse -> Orijinal query Türkçe farz edilir.
++                        # 2) Sadece İngilizce seçiliyse -> Orijinal query İngilizce farz edilir.
++                        # 3) İki dil birden seçiliyse (Cross-Lingual) -> Query'i diğer dile çevir ve İKİSİNİ BİRDEN asenkron ara!
++                        if len(selected_langs) == 2:
++                            # Hızlıca query'i hem İngilizce hem Türkçe olacak şekilde hazırla
++                            # Basit heuristic: Eğer argümanda ASCII harici karakter (ş, ç, ğ) varsa Türkçedir, yoksa Llama karar versin
++                            translated_q = await translate_query(q, target_lang="en" if "Türkçe" in q else "tr") # Hedefi değişimli ayarlayabiliriz ama Llama zaten algılayıp zıttını dönecektir
++                            
++                            # Güvenli çeviri kontrolü
++                            if translated_q and translated_q.lower() != q.lower():
++                                # İki ayrı arama task'i oluştur
++                                task1 = fetch_all_sources(sources_list, q, filters_dict)
++                                task2 = fetch_all_sources(sources_list, translated_q, filters_dict)
++                                
++                                res1, res2 = await asyncio.gather(task1, task2)
++                                
++                                # Sonuçları birleştir (Deduplication - DOI bazlı filtreleme)
++                                combined_results = res1.get("results", []) + res2.get("results", [])
++                                combined_errors = res1.get("errors", []) + res2.get("errors", [])
++                                
++                                # Tekilleştirme
++                                seen_dois = set()
++                                unique_results = []
++                                for item in combined_results:
++                                    doi = item.get("DOI", "-")
++                                    if doi != "-" and doi in seen_dois:
++                                        continue
++                                    seen_dois.add(doi)
++                                    unique_results.append(item)
++                                    
++                                return {"results": unique_results, "errors": combined_errors}
++                                
++                        # Tek dil seçiliyse veya çeviri başarısızsa standart arama
++                        return await fetch_all_sources(sources_list, q, filters_dict)
++
+                     loop = asyncio.new_event_loop()
+                     asyncio.set_event_loop(loop)
+                     try:
+-                        return loop.run_until_complete(fetch_all_sources(sources_list, q, filters_dict))
++                        return loop.run_until_complete(run_fetch())
+                     finally:
+-                        # Do not shutdown default executor to prevent zombie threads from hanging Streamlit
+                         loop.close()
+                     
+                 filters = {
+@@ -247,9 +355,109 @@ else:
+                 error_html += "</ul></div>"
+                 st.markdown(error_html, unsafe_allow_html=True)
+ 
++            if all_results:
++                if exact_match_only:
++                    filtered_res = []
++                    q_lower = query_to_run.lower()
++                    for item in all_results:
++                        title = str(item.get("Başlık", "")).lower()
++                        abstract = str(item.get("Özet", "")).lower()
++                        if q_lower in title or q_lower in abstract:
++                            filtered_res.append(item)
++                    all_results = filtered_res
++
+             if all_results:
+                 df = pd.DataFrame(all_results)
+                 
++                # --- Advanced Data Filtering (Post-Search) ---
++                with st.sidebar:
++                    st.markdown("<h2 style='font-family:\"Anton\"; color:#00D2FF; letter-spacing:1px;'>⚙️ SONUÇ FİLTRELERİ</h2>", unsafe_allow_html=True)
++                    st.markdown("<p style='color:#AAA; font-size:0.9rem;'>Bulunan sonuçları daraltın.</p>", unsafe_allow_html=True)
++                    
++                    # 1. Kaynak (Veritabanı) Filtresi
++                    available_sources = sorted(df['Kaynak'].unique().tolist())
++                    selected_sources = st.multiselect("Veritabanına Göre Filtrele", available_sources, default=available_sources)
++                    if selected_sources:
++                        df = df[df['Kaynak'].isin(selected_sources)]
++                        
++                    # 2. Yazar Filtresi (Top 50 yazarı gösterelim çok kalabalık olmasın diye)
++                    all_authors_raw = df['Yazarlar'].dropna().tolist()
++                    authors_set = set()
++                    for authors_str in all_authors_raw:
++                        if authors_str and authors_str != "Bilinmiyor":
++                            # Split by common separators
++                            for a in authors_str.split(','):
++                                clean_a = a.strip()
++                                if clean_a:
++                                    authors_set.add(clean_a)
++                    available_authors = sorted(list(authors_set))[:100] # Top 100 for perf
++                    selected_authors = st.multiselect("Yazara Göre Filtrele", available_authors, default=[])
++                    if selected_authors:
++                        # Eğer seçili yazarlardan HERHANGİ BİRİ makalenin yazarları içinde geçiyorsa göster
++                        mask = df['Yazarlar'].apply(lambda x: any(sa.lower() in str(x).lower() for sa in selected_authors))
++                        df = df[mask]
++                        
++                    # 3. Erişim Durumu Filtresi
++                    available_access = sorted(df['Erişim Durumu'].astype(str).unique().tolist())
++                    selected_access = st.multiselect("Erişim Durumu", available_access, default=available_access)
++                    if selected_access:
++                         df = df[df['Erişim Durumu'].isin(selected_access)]
++                         
++                    # 4. Standart Sıralama (Moved to Main View)
++                         
++                    st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
++                    st.markdown("<h3 style='font-family:\"Anton\"; color:#CCFF00; letter-spacing:1px;'>🧠 AI AKILLI SIRALAMA</h3>", unsafe_allow_html=True)
++                    st.markdown("<p style='color:#AAA; font-size:0.8rem;'>Kota tasarrufu için sadece liste başındaki <b>Top 15</b> makale, sorunuza ne kadar yanıt verdiğine göre yapay zeka tarafından puanlanıp yeniden sıralanır.</p>", unsafe_allow_html=True)
++                    
++                    use_smart_rerank = st.toggle("🤖 Süper Akıllı Sıralama (Re-ranking)", value=False)
++                    
++                if use_smart_rerank and not df.empty:
++                    # AI Re-ranking Logic (Top 15 Limit)
++                    top_15_df = df.head(15).copy()
++                    
++                    from utils.ai_manager import rank_results_with_ai
++                    import json
++                    import asyncio
++                    
++                    # Prepare JSON payload for the AI
++                    items_to_rank = []
++                    for idx, row in top_15_df.iterrows():
++                        items_to_rank.append({
++                            "id": str(idx), # Using dataframe index as temporary ID
++                            "title": str(row.get("Başlık", "")),
++                            "abstract": str(row.get("Özet", ""))[:500] # Truncate abstract to save more tokens
++                        })
++                        
++                    items_json = json.dumps(items_to_rank, ensure_ascii=False)
++                    
++                    with st.spinner("🧠 Top 15 makale anlamsal olarak analiz edilip yeniden sıralanıyor..."):
++                        try:
++                            # Pass original query to the AI to rank against, using standard asyncio.run
++                            ai_ranking_response = asyncio.run(rank_results_with_ai(query_to_run, items_json))
++                            
++                            try:
++                                ranking_data = json.loads(ai_ranking_response)
++                                results_list = ranking_data.get("results", [])
++                                
++                                # Create a dictionary mapping id to score
++                                score_map = {item["id"]: item["score"] for item in results_list}
++                                
++                                # Apply scores back to the top 15 dataframe
++                                top_15_df["AI_Score"] = top_15_df.index.astype(str).map(score_map).fillna(0).astype(int)
++                                
++                                # Sort by the new AI Score descending
++                                top_15_df = top_15_df.sort_values(by="AI_Score", ascending=False)
++                                
++                                # Re-attach to the rest of the dataframe (which remains untouched/unsorted below the top 15)
++                                remaining_df = df.iloc[15:]
++                                df = pd.concat([top_15_df, remaining_df])
++                                
++                                st.success("Akıllı Sıralama Tamamlandı! En alakalı sonuçlar üstte.", icon="🎯")
++                            except json.JSONDecodeError:
++                                st.error("AI Puanlama servisinde bir hata oluştu. Varsayılan sıralama kullanılıyor.")
++                        except Exception as e:
++                            st.error(f"Sıralama motoru hatası: {str(e)}")
++
+                 def generate_scihub_link(row):
+                     if pd.notna(row.get("DOI")) and row.get("DOI") != "-":
+                         clean_doi = str(row["DOI"]).replace('https://doi.org/', '').replace('http://dx.doi.org/', '')
+@@ -260,97 +468,150 @@ else:
+                 
+                 if show_only_locked:
+                     df = df[df["Sci-Hub Linki"].notna()]
+-                
+-                from components.ui_components import render_metrics, render_article_card
+-                from utils.export import generate_bibtex
+-                
+-                # Key Visual Metrics - Brutalist
+-                render_metrics(df, sci_hub_base)
+                     
+-                st.markdown("<div id='results-top'></div><div style='height: 40px;'></div><hr style='border-color: #333;'><div style='height: 40px;'></div>", unsafe_allow_html=True)
+-
+-                # --- PAGINATION & GOOGLE-STYLE LISTING ---
+-                items_per_page = 10
+-                total_items = len(df)
+-                total_pages = max(1, (total_items - 1) // items_per_page + 1)
+-                
+-                if "page_number" not in st.session_state:
+-                    st.session_state.page_number = 1
++                # If dataframe implies empty after filters -> Show warning
++                if df.empty:
++                    st.warning("Seçilmiş olan filtrelere uyan bir sonuç kalmadı. Lütfen sol menüden filtreleri gevşetin.")
++                else:
++                    from components.ui_components import render_metrics, render_article_card
++                    from utils.export import generate_bibtex
+                     
+-                if st.session_state.page_number > total_pages:
+-                    st.session_state.page_number = total_pages
+-                if st.session_state.page_number < 1:
+-                    st.session_state.page_number = 1
++                    # Key Visual Metrics - Brutalist
++                    render_metrics(df, sci_hub_base)
+                     
+-                start_idx = (st.session_state.page_number - 1) * items_per_page
+-                end_idx = start_idx + items_per_page
+-                page_df = df.iloc[start_idx:end_idx]
+-                
+-                if st.session_state.get('scroll_to_top', False):
+-                    import streamlit.components.v1 as components
+-                    components.html(
+-                        "<script>window.parent.document.getElementById('results-top').scrollIntoView({behavior: 'smooth', block: 'start'});</script>",
+-                        height=0,
++                    # --- Main View Sorting Feature ---
++                    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
++                    # --- Main View Sorting Feature ---
++                    # Use full width layout (no columns) to match article card width
++                    st.markdown("""
++                        <style>
++                        [data-testid="stMain"] div[data-testid="stSelectbox"] div[data-baseweb="select"] {
++                            background-color: #0e1117 !important;
++                            border: 4px solid #00D2FF !important;
++                            border-radius: 0 !important;
++                            box-shadow: 6px 6px 0px #CCFF00 !important;
++                            font-family: 'Space Mono', monospace !important;
++                            font-size: 1.1rem !important;
++                            font-weight: bold !important;
++                            color: #F0F0F0 !important;
++                            transition: transform 0.1s, box-shadow 0.1s;
++                            padding: 5px !important;
++                        }
++                        [data-testid="stMain"] div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover {
++                            transform: translate(-3px, -3px) !important;
++                            box-shadow: 9px 9px 0px #CCFF00 !important;
++                            border-color: #CCFF00 !important;
++                        }
++                        [data-testid="stMain"] div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
++                            background-color: transparent !important;
++                        }
++                        </style>
++                    """, unsafe_allow_html=True)
++                    
++                    sort_option = st.selectbox(
++                        "📅 Sonuçları Sırala", 
++                        ["Varsayılan", "Yıla Göre (En Yeni En Üstte)", "Yıla Göre (En Eski En Üstte)"], 
++                        label_visibility="collapsed"
+                     )
+-                    st.session_state.scroll_to_top = False
+-                
+-                for idx, (_, row) in enumerate(page_df.iterrows()):
+-                    with st.container():
+-                        render_article_card(row, index=idx)
+-                
+-                # Sayfalama Kontrolleri
+-                st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
+-                pc1, pc2, pc3 = st.columns([1, 2, 1])
+-                with pc1:
+-                    st.markdown("<span class='prev-btn-anchor'></span>", unsafe_allow_html=True)
+-                    if st.button("⬅️ Önceki Sayfa", disabled=(st.session_state.page_number <= 1), use_container_width=True):
+-                        st.session_state.page_number -= 1
+-                        st.session_state.scroll_to_top = True
+-                        st.rerun()
+-                with pc2:
+-                    st.markdown(f"<div style='text-align:center; color:#CCFF00; font-family:\"Space Mono\"; font-size:1.5rem; margin-top:10px;'><b>Sayfa {st.session_state.page_number} / {total_pages}</b></div>", unsafe_allow_html=True)
+-                with pc3:
+-                    st.markdown("<span class='next-btn-anchor'></span>", unsafe_allow_html=True)
+-                    if st.button("Sonraki Sayfa ➡️", disabled=(st.session_state.page_number >= total_pages), use_container_width=True):
+-                        st.session_state.page_number += 1
+-                        st.session_state.scroll_to_top = True
++                        
++                    if sort_option == "Yıla Göre (En Yeni En Üstte)":
++                        df['Yıl_Sırala'] = pd.to_numeric(df['Yıl'], errors='coerce').fillna(0)
++                        df = df.sort_values(by="Yıl_Sırala", ascending=False).drop(columns=['Yıl_Sırala'])
++                    elif sort_option == "Yıla Göre (En Eski En Üstte)":
++                        df['Yıl_Sırala'] = pd.to_numeric(df['Yıl'], errors='coerce').fillna(9999)
++                        df = df.sort_values(by="Yıl_Sırala", ascending=True).drop(columns=['Yıl_Sırala'])
++
++                    st.markdown("<br>", unsafe_allow_html=True)
++                    if st.button("🏛️ BAĞIMSIZ AI DANIŞMANI (GENEL KURUL)", type="primary", use_container_width=True):
++                        st.session_state.view_mode = "global_chat"
++                        if "chat_history_global" in st.session_state:
++                            del st.session_state.chat_history_global
+                         st.rerun()
++                        
++                    st.markdown("<div id='results-top'></div><div style='height: 20px;'></div><hr style='border-color: #333;'><div style='height: 20px;'></div>", unsafe_allow_html=True)
+ 
+-                st.markdown("<div style='height: 40px;'></div><hr style='border-color: #333;'><div style='height: 40px;'></div>", unsafe_allow_html=True)
+-                
+-                # Export Buttons (Base64 URIs for pixel-perfect brutalist HTML styling)
+-                import base64
+-                import io
+-                
+-                # 1. CSV
+-                csv_data = df.to_csv(index=False).encode('utf-8')
+-                b64_csv = base64.b64encode(csv_data).decode('utf-8')
+-                
+-                # 2. Excel
+-                output = io.BytesIO()
+-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+-                    df.to_excel(writer, index=False, sheet_name='Sonuçlar')
+-                b64_excel = base64.b64encode(output.getvalue()).decode('utf-8')
+-                
+-                # 3. BibTeX
+-                bibtex_data = generate_bibtex(df)
+-                b64_bibtex = base64.b64encode(bibtex_data.encode('utf-8')).decode('utf-8')
+-                
+-                btn_style_cyan = "text-decoration:none; background-color:#050505; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; padding:10px 25px; border:2px solid #00D2FF; box-shadow:4px 4px 0px #00D2FF; transition:all 0.2s; white-space:nowrap; display:inline-block;"
+-                btn_style_lime = "text-decoration:none; background-color:#CCFF00; color:#050505; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s; white-space:nowrap; display:inline-block;"
+-                
+-                import re
+-                export_feedback_html = re.sub(r'^[ \t]+', '', f"""
+-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-bottom: 30px; align-items: stretch;">
+-                    <div style="border: 4px solid #CCFF00; background-color: #111; padding: 30px; border-radius: 0; box-shadow: 8px 8px 0px #00D2FF; display: flex; flex-direction: column; justify-content: space-between;">
+-                        <div>
+-                            <h3 style="font-family: 'Anton', sans-serif; font-size: 2.5rem; color: #F0F0F0; margin-top: 0; margin-bottom: 15px; letter-spacing: 2px; text-shadow: 4px 4px 0px #00D2FF; text-transform: uppercase;">💾 SONUÇLARI DIŞA AKTAR</h3>
+-                            <p style="color: #AAA; font-family: 'Space Mono', monospace; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.6;">
+-                                Taraması tamamlanan makaleleri Excel, CSV veya BibTeX formatlarında cihazınıza indirerek literatür taramanızı kolayca arşivleyebilirsiniz.
+-                            </p>
+-                        </div>
+-                        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+-                            <a href="data:text/csv;base64,{b64_csv}" download="akademik_pusula_sonuclar.csv" style="{btn_style_cyan}">📥 CSV İNDİR</a>
++                    # --- PAGINATION & GOOGLE-STYLE LISTING ---
++                    items_per_page = 10
++                    total_items = len(df)
++                    total_pages = max(1, (total_items - 1) // items_per_page + 1)
++                    
++                    if "page_number" not in st.session_state:
++                        st.session_state.page_number = 1
++                        
++                    if st.session_state.page_number > total_pages:
++                        st.session_state.page_number = total_pages
++                    if st.session_state.page_number < 1:
++                        st.session_state.page_number = 1
++                        
++                    start_idx = (st.session_state.page_number - 1) * items_per_page
++                    end_idx = start_idx + items_per_page
++                    page_df = df.iloc[start_idx:end_idx]
++                    
++                    if st.session_state.get('scroll_to_top', False):
++                        import streamlit.components.v1 as components
++                        components.html(
++                            "<script>window.parent.document.getElementById('results-top').scrollIntoView({behavior: 'smooth', block: 'start'});</script>",
++                            height=0,
++                        )
++                        st.session_state.scroll_to_top = False
++                    
++                    for idx, (_, row) in enumerate(page_df.iterrows()):
++                        with st.container():
++                            render_article_card(row, index=idx)
++                    
++                    # Sayfalama Kontrolleri
++                    st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
++                    pc1, pc2, pc3 = st.columns([1, 2, 1])
++                    with pc1:
++                        st.markdown("<span class='prev-btn-anchor'></span>", unsafe_allow_html=True)
++                        if st.button("⬅️ Önceki Sayfa", disabled=(st.session_state.page_number <= 1), use_container_width=True):
++                            st.session_state.page_number -= 1
++                            st.session_state.scroll_to_top = True
++                            st.rerun()
++                    with pc2:
++                        st.markdown(f"<div style='text-align:center; color:#CCFF00; font-family:\"Space Mono\"; font-size:1.5rem; margin-top:10px;'><b>Sayfa {st.session_state.page_number} / {total_pages}</b></div>", unsafe_allow_html=True)
++                    with pc3:
++                        st.markdown("<span class='next-btn-anchor'></span>", unsafe_allow_html=True)
++                        if st.button("Sonraki Sayfa ➡️", disabled=(st.session_state.page_number >= total_pages), use_container_width=True):
++                            st.session_state.page_number += 1
++                            st.session_state.scroll_to_top = True
++                            st.rerun()
++
++                    st.markdown("<div style='height: 40px;'></div><hr style='border-color: #333;'><div style='height: 40px;'></div>", unsafe_allow_html=True)
++                    
++                    # Export Buttons (Base64 URIs for pixel-perfect brutalist HTML styling)
++                    import base64
++                    import io
++                    
++                    # 1. CSV
++                    csv_data = df.to_csv(index=False).encode('utf-8')
++                    b64_csv = base64.b64encode(csv_data).decode('utf-8')
++                    
++                    # 2. Excel
++                    output = io.BytesIO()
++                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
++                        df.to_excel(writer, index=False, sheet_name='Sonuçlar')
++                    b64_excel = base64.b64encode(output.getvalue()).decode('utf-8')
++                    
++                    # 3. BibTeX
++                    bibtex_data = generate_bibtex(df)
++                    b64_bibtex = base64.b64encode(bibtex_data.encode('utf-8')).decode('utf-8')
++                    
++                    btn_style_cyan = "text-decoration:none; background-color:#050505; color:#FFF; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; padding:10px 25px; border:2px solid #00D2FF; box-shadow:4px 4px 0px #00D2FF; transition:all 0.2s; white-space:nowrap; display:inline-block;"
++                    btn_style_lime = "text-decoration:none; background-color:#CCFF00; color:#050505; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1.5rem; font-weight:bold; padding:10px 25px; border:2px solid #050505; box-shadow:4px 4px 0px #050505; transition:all 0.2s; white-space:nowrap; display:inline-block;"
++                    
++                    import re
++                    export_feedback_html = re.sub(r'^[ \t]+', '', f"""
++                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-bottom: 30px; align-items: stretch;">
++                        <div style="border: 4px solid #CCFF00; background-color: #111; padding: 30px; border-radius: 0; box-shadow: 8px 8px 0px #00D2FF; display: flex; flex-direction: column; justify-content: space-between;">
++                            <div>
++                                <h3 style="font-family: 'Anton', sans-serif; font-size: 2.5rem; color: #F0F0F0; margin-top: 0; margin-bottom: 15px; letter-spacing: 2px; text-shadow: 4px 4px 0px #00D2FF; text-transform: uppercase;">💾 SONUÇLARI DIŞA AKTAR</h3>
++                                <p style="color: #AAA; font-family: 'Space Mono', monospace; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.6;">
++                                    Taraması tamamlanan makaleleri Excel, CSV veya BibTeX formatlarında cihazınıza indirerek literatür taramanızı kolayca arşivleyebilirsiniz.
++                                </p>
++                            </div>
++                            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
++                                <a href="data:text/csv;base64,{b64_csv}" download="akademik_pusula_sonuclar.csv" style="{btn_style_cyan}">📥 CSV İNDİR</a>
+                             <a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64_excel}" download="akademik_pusula_sonuclar.xlsx" style="{btn_style_lime}">📊 EXCEL İNDİR</a>
+                             <a href="data:text/plain;base64,{b64_bibtex}" download="akademik_pusula_sonuclar.bib" style="{btn_style_cyan}">📝 BİBTEX İNDİR</a>
+                         </div>
+@@ -377,7 +638,7 @@ else:
+ # ------------------ END OF SEARCH MODE -------------
+ 
+ # --- Footer ---
+-if st.session_state.view_mode != "focus":
++if st.session_state.view_mode not in ["focus", "global_chat"]:
+     st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
+     st.markdown("""
+     <div style="border: 4px solid #CCFF00; background-color: #111; padding: 20px; box-shadow: 8px 8px 0px #00D2FF; text-align: center; margin: 0 auto; max-width: 600px; font-family: 'Space Mono', monospace;">
+diff --git a/assets/style.css b/assets/style.css
+index b848add..80481a8 100644
+--- a/assets/style.css
++++ b/assets/style.css
+@@ -150,6 +150,29 @@ div[data-testid="InputInstructions"] {
+     padding: 0 !important;
+ }
+ 
++/* Brutalist Selectbox/Dropdown for Sorting */
++.brutalist-dropdown [data-baseweb="select"] {
++    background-color: #0e1117 !important;
++    border: 3px solid #00D2FF !important;
++    border-radius: 0 !important;
++    box-shadow: 4px 4px 0px #CCFF00 !important;
++    font-family: 'Space Mono', monospace !important;
++    font-size: 1.1rem !important;
++    font-weight: bold !important;
++    color: #F0F0F0 !important;
++    transition: transform 0.1s, box-shadow 0.1s;
++}
++
++.brutalist-dropdown [data-baseweb="select"]:hover {
++    transform: translate(-3px, -3px) !important;
++    box-shadow: 7px 7px 0px #CCFF00 !important;
++    border-color: #CCFF00 !important;
++}
++
++.brutalist-dropdown [data-baseweb="select"]>div {
++    background-color: transparent !important;
++}
++
+ [data-testid="stTextInput"] div[data-baseweb="input"]:has(input[placeholder="Mühendislik literatüründe arayın..."])::after {
+     content: "🔍";
+     position: absolute;
+@@ -563,14 +586,27 @@ div[data-testid="stChatMessage"]:nth-child(odd) {
+ 
+ /* Chat Input Box (The bottom bar) */
+ [data-testid="stChatInput"] {
+-    background-color: transparent !important;
+-    padding-bottom: 2rem !important;
++    background-color: #050505 !important;
++    padding: 15px 30px !important;
++    border-top: 4px solid #CCFF00 !important;
++    position: fixed !important;
++    bottom: 0 !important;
++    left: 0 !important;
++    right: 0 !important;
++    width: 100vw !important;
++    z-index: 9999 !important;
+ }
+ 
+ /* Remove any background panel around the bottom chat input from Streamlit v1.30+ */
+ div.stBottomBlockContainer {
+     background: transparent !important;
+     background-color: transparent !important;
++    padding-bottom: 0 !important;
++}
++
++[data-testid="stChatInput"]>div {
++    max-width: 900px !important;
++    margin: 0 auto !important;
+ }
+ 
+ [data-testid="stChatInput"] textarea {
+@@ -580,8 +616,10 @@ div.stBottomBlockContainer {
+     color: #FFF !important;
+     font-family: 'Space Mono', monospace !important;
+     font-size: 1.2rem !important;
+-    padding: 1rem !important;
++    padding: 1.2rem 60px 1.2rem 1.2rem !important;
++    /* Space for the button on right */
+     box-shadow: 8px 8px 0px #00D2FF !important;
++    min-height: 65px !important;
+ }
+ 
+ [data-testid="stChatInput"] textarea:focus {
+@@ -589,24 +627,43 @@ div.stBottomBlockContainer {
+     box-shadow: 8px 8px 0px #CCFF00 !important;
+ }
+ 
+-/* Chat Input Send Button */
++/* Chat Input Send Button container override */
++[data-testid="stChatInput"] div[data-baseweb="button"] {
++    right: 0 !important;
++    bottom: 0 !important;
++    top: 0 !important;
++    height: 100% !important;
++    position: absolute !important;
++}
++
++/* Chat Input Send Button Exact Element */
+ [data-testid="stChatInputSubmitButton"] {
+     background-color: #CCFF00 !important;
+-    border: 2px solid #050505 !important;
++    border: 4px solid #CCFF00 !important;
+     border-radius: 0px !important;
+     color: #050505 !important;
+-    right: 15px !important;
+-    bottom: 15px !important;
+-    box-shadow: 4px 4px 0px #00D2FF !important;
++    height: calc(100% - 8px) !important;
++    /* Account for textarea borders */
++    margin: 4px 4px 0 0 !important;
++    right: 0px !important;
++    top: 0px !important;
++    bottom: 0px !important;
++    position: absolute !important;
++    display: flex !important;
++    align-items: center !important;
++    justify-content: center !important;
++    box-shadow: none !important;
+     transition: all 0.2s;
++    width: 60px !important;
+ }
+ 
+ [data-testid="stChatInputSubmitButton"]:hover {
+     background-color: #00D2FF !important;
+-    box-shadow: 6px 6px 0px #CCFF00 !important;
+-    transform: translate(-2px, -2px);
++    border-color: #00D2FF !important;
++    color: #050505 !important;
+ }
+ 
++
+ /* =========================================
+    MOBILE RESPONSIVENESS (PWA & PHONES)
+ ========================================= */
+diff --git a/components/ui_components.py b/components/ui_components.py
+index 4b1d683..60cbce6 100644
+--- a/components/ui_components.py
++++ b/components/ui_components.py
+@@ -77,11 +77,22 @@ def render_article_card(row: pd.Series, index: int, is_focus_mode: bool = False)
+         st.link_button("🏴‍☠️ LIBGEN", url=libgen_link, use_container_width=True)
+     with col5:
+         if not is_focus_mode:
+-            if st.button("👁️ MAKALEYE ODAKLAN & AI İLE TARTIŞ", key=f"focus_btn_{index}", use_container_width=True):
++            # Single Unified Button for both focus and full-text fallback handling
++            if st.button("👁️ MAKALEYE ODAKLAN & DERİN ANALİZ", key=f"focus_btn_{index}", type="primary", use_container_width=True):
+                 st.session_state.view_mode = 'focus'
++                st.session_state.force_full_text = True # Starts deep analysis intent
+                 st.session_state.selected_paper = row
+                 st.session_state.chat_history = []
+                 st.rerun()
++        else:
++            # Render 'Geri Dön' button exactly right of Libgen button when in focus mode
++            if st.button("🔙 GERİ DÖN (ARAMA SONUÇLARI)", key="back_btn_inline", use_container_width=True):
++                st.session_state.view_mode = "search"
++                if "full_text" in st.session_state:
++                    del st.session_state.full_text
++                if "force_full_text" in st.session_state:
++                    del st.session_state.force_full_text
++                st.rerun()
+                 
+     # Native Streamlit code block for easy copy-pasting of citation right below
+     st.code(apa_ref_text, language="text")
+diff --git a/utils/ai_manager.py b/utils/ai_manager.py
+index 91047f1..cf8b1ee 100644
+--- a/utils/ai_manager.py
++++ b/utils/ai_manager.py
+@@ -2,6 +2,7 @@ import os
+ import httpx
+ import json
+ import streamlit as st
++import asyncio
+ 
+ # Retrieve API key securely from Streamlit secrets or Environment Variables (for Railway)
+ try:
+@@ -12,51 +13,168 @@ except Exception:
+ 
+ GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+ 
+-# System prompt is given exactly as strictly requested by the prompt engineering instructions
+-CONSENSUS_SYSTEM_PROMPT = """[SYSTEM: YOU ARE THE "ACADEMIC COMPASS CONSENSUS ENGINE"]
+-You represent a synchronized assembly of three distinct AI experts working together to analyze an academic paper for a Mechanical Engineering student. Your ultimate goal is to provide unified, highly technical, and strictly accurate answers based ONLY on the provided paper's text/abstract.
++# Prompts for different roles
++RESEARCHER_PROMPT = """[GÖREV: VERİ VE METODOLOJİ ARAŞTIRMACISI]
++Sen titiz bir teknik veri madencisisin. Sağlanan akademik makale özetinde veya tam metninde kullanıcının sorusuyla ilgili tüm sayısal verileri, test parametrelerini ve cihaz bilgilerini bulmalısın.
++Kuralların: 
++1. SIFIR HALÜSİNASYON: Sadece teknik verileri çıkar. Eğer makalede aranan spesifik teknik veri yoksa uydurma.
++2. GENEL SORU YAKLAŞIMI: Eğer kullanıcı "Bu analizden nasıl tez yazılır?" gibi genel/tavsiye odaklı bir soru soruyorsa, makaledeki ana fikri ve potansiyel veriş noktalarını bul.
++3. AI EK NOTU: Eğer elindeki makalede veri yoksa ama sen devasa mühendislik kültürünle bu soruya genel geçer bir yanıt/tavsiye verebiliyorsan, bunu BÜYÜK HARFLERLE '💡 BAĞIMSIZ AI YORUMU (Makalede Yer Almaz):' başlığı altında yaz.
++4. Asla yorum yapma veya sonuç çıkarma (Bağımsız AI Yorumu kısmı hariç), sadece net verileri ve bulguları listele.
++5. Dilin akıcı Türkçe olmalıdır.
++"""
++
++CRITIC_PROMPT = """[GÖREV: ŞEYTANIN AVUKATI / ELEŞTİRMEN]
++Sen acımasız ve eleştirel bir akademik kurulsun. Sağlanan makaleyi ve kullanıcının sorusunu incele.
++Kuralların:
++1. SIFIR HALÜSİNASYON: Literatürdeki standartlar ve metodoloji açısından makaleyi metindeki verilere göre eleştir. Veri yoksa uydurma.
++2. GENEL SORU YAKLAŞIMI: Eğer soru genel veya vizyon odaklıysa (örn: "Nasıl tez yazılır?"), makalenin zayıf yönlerini bulup "Tezde bu açıkları kapatmalısın" şeklinde makaleyi eleştirel bir yaklaşımla değerlendir.
++3. AI EK NOTU: Eğer genel mühendislik kültürünle bu konudaki tipik hataları veya zorlukları eklemek istersen, bunu '💡 BAĞIMSIZ AI YORUMU (Makalede Yer Almaz):' başlığıyla yap.
++4. Bu çalışmadaki metodolojik boşlukları veya kısıtları bul.
++5. Asla çalışmayı övme. Akademik jargon kullan. Dilin akıcı Türkçe olmalıdır.
++"""
++
++PRESIDENT_PROMPT = """[GÖREV: GENEL KURUL BAŞKANI VE SENTEZLEYİCİ]
++Sen mükemmel, vizyoner ve bilge bir akademisyensin. Öğrencinin sana sorduğu soruya, elindeki makale bağlamı ve diğer iki çalışma arkadaşından (Araştırmacı ve Eleştirmen) gelen raporlar ışığında nihai, kusursuz ve doyurucu bir akademik yanıt vereceksin.
++Kuralların:
++1. SIFIR HALÜSİNASYON (Veri Çıkarımı İçin): Makaledeki spesifik verileri analiz ediyorsan, makalede olmayan bir veriyi asla varmış gibi uydurma. 
++2. GENEL AKADEMİK VE MÜHENDİSLİK DANIŞMANLIĞI: Eğer öğrenci makale verisinin ötesinde (örn: "Bununla ilgili nasıl tez yazabilirim?", "Bu kavram nedir?", "Hangi testleri önerirsin?") genel bir soru soruyorsa, hem makaledeki bağlamı harmanla hem de kendi DEVASA mühendislik ve akademik kültürünü kullanarak DOĞRUDAN ve DETAYLI TEKNİK bir cevap ver. Soruyu asla cevapsız bırakma.
++3. AI EK NOTU: Doğrudan makale analizi yapıp araya dışarıdan bir bilgi katıyorsan '💡 BAĞIMSIZ AI YORUMU (Makalede Yer Almaz):' de. Ancak soru ZATEN genel bir tavsiye veya fikir alma sorusuysa doğrudan konuya girip bilgini konuştur.
++4. Çıktını KESİNLİKLE aşağıdaki Markdown formatına birebir uyarak ver (Başka hiçbir giriş veya çıkış cümlesi kullanma, direkt formatı bas):
+ 
+-[EXPERT PERSONAS IN THE ASSEMBLY]
+-1. Expert A (The Synthesizer - Llama 4): Focuses on the big picture, core hypotheses, and practical applications in manufacturing.
+-2. Expert B (The Data Miner - Qwen3): Extremely detail-oriented. Hunts for numerical parameters, material specs (e.g., steel grades, temperatures, hardness values in HRC/HB, tolerances), and testing equipment.
+-3. Expert C (The Critical Auditor - Llama 3.1): Acts as the devil's advocate. Checks for methodological flaws, statistical significance, and limitations.
++🧠 **[ARAŞTIRMACI RAPORU - Qwen3-32B]:**
++(Buraya araştırmacının bulduğu somut verileri ve bağlamı akademik bir dille madde madde yaz)
+ 
+-[YOUR PROTOCOL FOR ANSWERING USER QUESTIONS]
+-When the user asks a question about the loaded paper, you must execute the following internal process before answering:
+-STEP 1 - GATHER: Extract relevant quotes or data from the paper.
+-STEP 2 - DEBATE: (Internal thought process) Expert A states the main finding. Expert B verifies the exact numbers. Expert C checks if the context supports this claim.
+-STEP 3 - CONSENSUS: Formulate a single, unified answer that represents the agreement of all three experts. 
++⚖️ **[ELEŞTİRMEN RAPORU - Llama-4-Scout-17B]:**
++(Buraya eleştirmenin sert tespitlerini akademik bir dille madde madde yaz)
+ 
+-[STRICT RULES FOR OUTPUT]
+-1. LANGUAGE: You must strictly communicate with the user in fluent, academic Turkish.
+-2. NO HALLUCINATION: If the paper does not contain the answer to the user's question, you must clearly state: "Bu bilgi mevcut makalede yer almamaktadır." Do not use outside knowledge to fill in the gaps unless the user explicitly asks you to guess.
+-3. STRUCTURE: Present your final answer using the following Neo-Brutalist structure:
+-   - 🎯 [ORTAK KARAR]: (The direct, synthesized answer to the user's question)
+-   - ⚙️ [TEKNİK VERİLER]: (Bullet points of exact numbers, formulas, or parameters mentioned)
+-   - 🛡️ [DENETÇİ NOTU]: (Any limitations, risks, or critical academic context about this specific finding)
++🎯 **[BAŞKANIN SENTEZİ VE ORTAK KARAR - Llama-3.3-70B]:**
++(Buraya kendi sentezini ve öğrencinin sorusuna -genel bir fikir/tez sorusu olsa dahi- verdiği makale bağlamı ile harmanlayarak hazırladığın NİHAİ, çok detaylı, akademik jargonla desteklenmiş vizyoner cevabını yaz)
++(Eğer gerekliyse, 💡 BAĞIMSIZ AI YORUMU kısmını buranın en sonuna ekle)
+ 
++5. Dilin akıcı Türkçe olmalıdır.
+ """
+ 
++async def call_groq_model(client: httpx.AsyncClient, model: str, system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
++    """Helper to make async calls to Groq API"""
++    headers = {
++        "Authorization": f"Bearer {GROQ_API_KEY}",
++        "Content-Type": "application/json"
++    }
++    payload = {
++        "model": model, 
++        "messages": [
++            {"role": "system", "content": system_prompt},
++            {"role": "user", "content": user_prompt}
++        ],
++        "temperature": temperature,
++        "max_tokens": 1500
++    }
++    try:
++        response = await client.post(GROQ_API_URL, headers=headers, json=payload, timeout=40.0)
++        response.raise_for_status()
++        return response.json()["choices"][0]["message"]["content"]
++    except Exception as e:
++        return f"[HATA - {model}]: {str(e)}"
++
+ async def chat_with_paper_consensus(paper_title: str, paper_abstract: str, user_question: str) -> str:
+-    """Sends a request to Groq API using the consensus prompt architecture."""
+-    # Build complete system message including the dynamic input context
+-    dynamic_context = f"\n[INPUT CONTEXT]\nPAPER TITLE: {paper_title}\nPAPER ABSTRACT/TEXT: {paper_abstract}\n"
+-    full_system_prompt = CONSENSUS_SYSTEM_PROMPT + dynamic_context
++    """Executes the 3-model AI consensus engine asynchronously."""
+     
++    # Context to share with all agents
++    context = f"MAKALE BAŞLIĞI: {paper_title}\nMAKALE METNİ/ÖZETİ: {paper_abstract}\n"
++    
++    async with httpx.AsyncClient() as client:
++        # Step 1: Researcher and Critic run in parallel (approx 1.5 - 2 seconds on Groq)
++        researcher_task = call_groq_model(
++            client=client, 
++            model="qwen/qwen3-32b", 
++            system_prompt=RESEARCHER_PROMPT, 
++            user_prompt=f"{context}\n\nKULLANICI SORUSU: {user_question}",
++            temperature=0.1 # Needs exact data extraction
++        )
++        
++        critic_task = call_groq_model(
++            client=client, 
++            model="meta-llama/llama-4-scout-17b-16e-instruct", 
++            system_prompt=CRITIC_PROMPT, 
++            user_prompt=f"{context}\n\nKULLANICI SORUSU: {user_question}",
++            temperature=0.4 # More creative/aggressive
++        )
++        
++        researcher_report, critic_report = await asyncio.gather(researcher_task, critic_task)
++        
++        # Step 2: President runs sequentially after the first two, synthesizing the output
++        president_context = f"{context}\n\n--- ARAŞTIRMACI RAPORU ---\n{researcher_report}\n\n--- ELEŞTİRMEN RAPORU ---\n{critic_report}\n"
++        
++        final_answer = await call_groq_model(
++            client=client,
++            model="llama-3.3-70b-versatile",
++            system_prompt=PRESIDENT_PROMPT,
++            user_prompt=f"{president_context}\n\nKULLANICI SORUSU: {user_question}",
++            temperature=0.2
++        )
++        
++        return final_answer
++
++async def fetch_full_text_jina(url: str) -> str:
++    """
++    Uses r.jina.ai to scrape the full text of an article link and return it as Markdown.
++    If the link is a standard DOI link, Jina will attempt to resolve and read the publisher page.
++    Includes HTTP Status Code tracking to prevent Bot Protections (Cloudflare) from breaking AI context.
++    """
++    if not url or url == "-":
++        return "Geçerli bir orijinal bağlantı bulunamadı."
++        
++    jina_url = f"https://r.jina.ai/{url}"
++    headers = {}
++    
++    try:
++        async with httpx.AsyncClient() as client:
++            response = await client.get(
++                jina_url, 
++                headers=headers, 
++                timeout=45.0,
++                follow_redirects=True
++            )
++            
++            # 1) HTTP Durum Kodu Bazlı Bot Koruması Saptama
++            if response.status_code in [401, 403, 503]:
++                return f"BotKorumasi: Yayıncı (HTTP {response.status_code}) bot koruması uyguladığı için tam metin çekilemedi."
++                
++            response.raise_for_status()
++            text_content = response.text
++            
++            # 2) Fallback: Eğer HTTP 200 dönüp sayfanın içine Cloudflare sayfası basılmışsa (Jina render etmişse)
++            lower_text = text_content.lower()
++            if "are you a robot" in lower_text or "just a moment..." in lower_text or "captcha challenge" in lower_text:
++                return f"BotKorumasi: Yayıncı bot koruması/Captcha uyguladığı için tam metin çekilemedi."
++                
++            if len(text_content) < 500:
++                return f"BotKorumasi: Makale kilitli veya metin çok kısa. Gelen veri:\n{text_content}"
++                
++            return text_content
++    except Exception as e:
++        return f"BotKorumasi: Tam metin çekilirken Jina AI servisinde iletişim hatası oluştu: {str(e)}"
++
++async def translate_query(query: str, target_lang: str = "en") -> str:
++    """
++    Translates search query to target language (en/tr) to support cross-lingual search.
++    Uses llama-3.1-8b-instant for fast, reliable short-text translation.
++    """
+     headers = {
+         "Authorization": f"Bearer {GROQ_API_KEY}",
+         "Content-Type": "application/json"
+     }
+     
+-    # Create the payload explicitly using the requested Llama 3 wrapper model compatible on Groq
++    prompt = f"Translate the following academic/engineering search query to {'English' if target_lang == 'en' else 'Turkish'}. ONLY return the translated term, nothing else. No quotes, no explanations.\n\nQuery: {query}"
++    
+     payload = {
+-        "model": "llama-3.3-70b-versatile", 
++        "model": "llama-3.1-8b-instant",
+         "messages": [
+-            {"role": "system", "content": full_system_prompt},
+-            {"role": "user", "content": user_question}
++            {"role": "user", "content": prompt}
+         ],
+-        "temperature": 0.2, # Low temperature to prevent hallucination and stick strictly to the consensus logic
+-        "max_tokens": 1500
++        "temperature": 0.1,
++        "max_tokens": 50
+     }
+     
+     try:
+@@ -65,10 +183,12 @@ async def chat_with_paper_consensus(paper_title: str, paper_abstract: str, user_
+                 GROQ_API_URL, 
+                 headers=headers, 
+                 json=payload, 
+-                timeout=60.0
++                timeout=10.0
+             )
+             response.raise_for_status()
+             data = response.json()
+-            return data["choices"][0]["message"]["content"]
++            translated_text = data["choices"][0]["message"]["content"].strip().strip('"').strip("'")
++            return translated_text
+     except Exception as e:
+-        return f"🚨 Üzgünüm, API bağlantısında geçici bir hata oluştu: {str(e)}"
++        # Fallback to original query if translation fails to not break the search
++        return query
+diff --git a/utils/fetcher.py b/utils/fetcher.py
+index 302a598..c2b2304 100644
+--- a/utils/fetcher.py
++++ b/utils/fetcher.py
+@@ -7,7 +7,6 @@ from api_services.arxiv import ArxivScraper
+ from api_services.dergipark import DergiParkScraper
+ from api_services.yok_tez import YokTezScraper
+ from api_services.tr_dizin import TRDizinScraper
+-from api_services.ieee import IEEEScraper
+ from api_services.elsevier import ElsevierScraper
+ from api_services.springer import SpringerScraper
+ from api_services.asme import ASMEScraper
+@@ -20,7 +19,6 @@ scraper_map = {
+     "DergiPark": DergiParkScraper,
+     "YÖK Tez / TR Üniversiteleri": YokTezScraper,
+     "TR Kaynaklı / TR Dizin": TRDizinScraper,
+-    "IEEE Xplore": IEEEScraper,
+     "Elsevier (ScienceDirect)": ElsevierScraper,
+     "Springer": SpringerScraper,
+     "ASME": ASMEScraper

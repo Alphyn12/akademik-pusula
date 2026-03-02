@@ -7,7 +7,6 @@ from api_services.arxiv import ArxivScraper
 from api_services.dergipark import DergiParkScraper
 from api_services.yok_tez import YokTezScraper
 from api_services.tr_dizin import TRDizinScraper
-from api_services.ieee import IEEEScraper
 from api_services.elsevier import ElsevierScraper
 from api_services.springer import SpringerScraper
 from api_services.asme import ASMEScraper
@@ -20,7 +19,6 @@ scraper_map = {
     "DergiPark": DergiParkScraper,
     "YÖK Tez / TR Üniversiteleri": YokTezScraper,
     "TR Kaynaklı / TR Dizin": TRDizinScraper,
-    "IEEE Xplore": IEEEScraper,
     "Elsevier (ScienceDirect)": ElsevierScraper,
     "Springer": SpringerScraper,
     "ASME": ASMEScraper

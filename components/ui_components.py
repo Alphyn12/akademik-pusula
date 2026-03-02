@@ -77,10 +77,21 @@ def render_article_card(row: pd.Series, index: int, is_focus_mode: bool = False)
         st.link_button("🏴‍☠️ LIBGEN", url=libgen_link, use_container_width=True)
     with col5:
         if not is_focus_mode:
-            if st.button("👁️ MAKALEYE ODAKLAN & AI İLE TARTIŞ", key=f"focus_btn_{index}", use_container_width=True):
+            # Single Unified Button for both focus and full-text fallback handling
+            if st.button("👁️ MAKALEYE ODAKLAN & DERİN ANALİZ", key=f"focus_btn_{index}", type="primary", use_container_width=True):
                 st.session_state.view_mode = 'focus'
+                st.session_state.force_full_text = True # Starts deep analysis intent
                 st.session_state.selected_paper = row
                 st.session_state.chat_history = []
+                st.rerun()
+        else:
+            # Render 'Geri Dön' button exactly right of Libgen button when in focus mode
+            if st.button("🔙 GERİ DÖN (ARAMA SONUÇLARI)", key="back_btn_inline", use_container_width=True):
+                st.session_state.view_mode = "search"
+                if "full_text" in st.session_state:
+                    del st.session_state.full_text
+                if "force_full_text" in st.session_state:
+                    del st.session_state.force_full_text
                 st.rerun()
                 
     # Native Streamlit code block for easy copy-pasting of citation right below

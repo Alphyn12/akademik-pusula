@@ -150,6 +150,29 @@ div[data-testid="InputInstructions"] {
     padding: 0 !important;
 }
 
+/* Brutalist Selectbox/Dropdown for Sorting */
+.brutalist-dropdown [data-baseweb="select"] {
+    background-color: #0e1117 !important;
+    border: 3px solid #00D2FF !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0px #CCFF00 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+    color: #F0F0F0 !important;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.brutalist-dropdown [data-baseweb="select"]:hover {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: 7px 7px 0px #CCFF00 !important;
+    border-color: #CCFF00 !important;
+}
+
+.brutalist-dropdown [data-baseweb="select"]>div {
+    background-color: transparent !important;
+}
+
 [data-testid="stTextInput"] div[data-baseweb="input"]:has(input[placeholder="Mühendislik literatüründe arayın..."])::after {
     content: "🔍";
     position: absolute;
@@ -563,14 +586,27 @@ div[data-testid="stChatMessage"]:nth-child(odd) {
 
 /* Chat Input Box (The bottom bar) */
 [data-testid="stChatInput"] {
-    background-color: transparent !important;
-    padding-bottom: 2rem !important;
+    background-color: #050505 !important;
+    padding: 15px 30px !important;
+    border-top: 4px solid #CCFF00 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    z-index: 9999 !important;
 }
 
 /* Remove any background panel around the bottom chat input from Streamlit v1.30+ */
 div.stBottomBlockContainer {
     background: transparent !important;
     background-color: transparent !important;
+    padding-bottom: 0 !important;
+}
+
+[data-testid="stChatInput"]>div {
+    max-width: 900px !important;
+    margin: 0 auto !important;
 }
 
 [data-testid="stChatInput"] textarea {
@@ -580,8 +616,10 @@ div.stBottomBlockContainer {
     color: #FFF !important;
     font-family: 'Space Mono', monospace !important;
     font-size: 1.2rem !important;
-    padding: 1rem !important;
+    padding: 1.2rem 60px 1.2rem 1.2rem !important;
+    /* Space for the button on right */
     box-shadow: 8px 8px 0px #00D2FF !important;
+    min-height: 65px !important;
 }
 
 [data-testid="stChatInput"] textarea:focus {
@@ -589,23 +627,42 @@ div.stBottomBlockContainer {
     box-shadow: 8px 8px 0px #CCFF00 !important;
 }
 
-/* Chat Input Send Button */
+/* Chat Input Send Button container override */
+[data-testid="stChatInput"] div[data-baseweb="button"] {
+    right: 0 !important;
+    bottom: 0 !important;
+    top: 0 !important;
+    height: 100% !important;
+    position: absolute !important;
+}
+
+/* Chat Input Send Button Exact Element */
 [data-testid="stChatInputSubmitButton"] {
     background-color: #CCFF00 !important;
-    border: 2px solid #050505 !important;
+    border: 4px solid #CCFF00 !important;
     border-radius: 0px !important;
     color: #050505 !important;
-    right: 15px !important;
-    bottom: 15px !important;
-    box-shadow: 4px 4px 0px #00D2FF !important;
+    height: calc(100% - 8px) !important;
+    /* Account for textarea borders */
+    margin: 4px 4px 0 0 !important;
+    right: 0px !important;
+    top: 0px !important;
+    bottom: 0px !important;
+    position: absolute !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
     transition: all 0.2s;
+    width: 60px !important;
 }
 
 [data-testid="stChatInputSubmitButton"]:hover {
     background-color: #00D2FF !important;
-    box-shadow: 6px 6px 0px #CCFF00 !important;
-    transform: translate(-2px, -2px);
+    border-color: #00D2FF !important;
+    color: #050505 !important;
 }
+
 
 /* =========================================
    MOBILE RESPONSIVENESS (PWA & PHONES)
