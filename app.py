@@ -67,8 +67,56 @@ load_css(os.path.join(os.path.dirname(__file__), 'assets', 'style.css'))
 
 
 # --- Backend Fetcher Functions ---
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_data_cached(sources_list, q, filters_dict):
+    import asyncio
+    from utils.fetcher import fetch_all_sources
+    from utils.ai_manager import translate_query
 
+    async def run_fetch():
+        selected_langs = filters_dict.get('language', [])
 
+        # 1) Sadece Türkçe seçiliyse -> Orijinal query Türkçe farz edilir.
+        # 2) Sadece İngilizce seçiliyse -> Orijinal query İngilizce farz edilir.
+        # 3) İki dil birden seçiliyse (Cross-Lingual) -> Query'i diğer dile çevir ve İKİSİNİ BİRDEN asenkron ara!
+        if len(selected_langs) == 2:
+            # Hızlıca query'i hem İngilizce hem Türkçe olacak şekilde hazırla
+            # Basit heuristic: Eğer argümanda ASCII harici karakter (ş, ç, ğ) varsa Türkçedir, yoksa Llama karar versin
+            translated_q = await translate_query(q, target_lang="en" if "Türkçe" in q else "tr") # Hedefi değişimli ayarlayabiliriz ama Llama zaten algılayıp zıttını dönecektir
+
+            # Güvenli çeviri kontrolü
+            if translated_q and translated_q.lower() != q.lower():
+                # İki ayrı arama task'i oluştur
+                task1 = fetch_all_sources(sources_list, q, filters_dict)
+                task2 = fetch_all_sources(sources_list, translated_q, filters_dict)
+
+                res1, res2 = await asyncio.gather(task1, task2)
+
+                # Sonuçları birleştir (Deduplication - DOI bazlı filtreleme)
+                combined_results = res1.get("results", []) + res2.get("results", [])
+                combined_errors = res1.get("errors", []) + res2.get("errors", [])
+
+                # Tekilleştirme
+                seen_dois = set()
+                unique_results = []
+                for item in combined_results:
+                    doi = item.get("DOI", "-")
+                    if doi != "-" and doi in seen_dois:
+                        continue
+                    seen_dois.add(doi)
+                    unique_results.append(item)
+
+                return {"results": unique_results, "errors": combined_errors}
+
+        # Tek dil seçiliyse veya çeviri başarısızsa standart arama
+        return await fetch_all_sources(sources_list, q, filters_dict)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        return loop.run_until_complete(run_fetch())
+    finally:
+        loop.close()
 
 # --- Search Engine Layout ---
 
@@ -281,57 +329,6 @@ else:
                         height=0
                     )
                 
-                @st.cache_data(ttl=3600, show_spinner=False)
-                def fetch_data_cached(sources_list, q, filters_dict):
-                    import asyncio
-                    from utils.fetcher import fetch_all_sources
-                    from utils.ai_manager import translate_query
-                    
-                    async def run_fetch():
-                        selected_langs = filters_dict.get('language', [])
-                        
-                        # 1) Sadece Türkçe seçiliyse -> Orijinal query Türkçe farz edilir.
-                        # 2) Sadece İngilizce seçiliyse -> Orijinal query İngilizce farz edilir.
-                        # 3) İki dil birden seçiliyse (Cross-Lingual) -> Query'i diğer dile çevir ve İKİSİNİ BİRDEN asenkron ara!
-                        if len(selected_langs) == 2:
-                            # Hızlıca query'i hem İngilizce hem Türkçe olacak şekilde hazırla
-                            # Basit heuristic: Eğer argümanda ASCII harici karakter (ş, ç, ğ) varsa Türkçedir, yoksa Llama karar versin
-                            translated_q = await translate_query(q, target_lang="en" if "Türkçe" in q else "tr") # Hedefi değişimli ayarlayabiliriz ama Llama zaten algılayıp zıttını dönecektir
-                            
-                            # Güvenli çeviri kontrolü
-                            if translated_q and translated_q.lower() != q.lower():
-                                # İki ayrı arama task'i oluştur
-                                task1 = fetch_all_sources(sources_list, q, filters_dict)
-                                task2 = fetch_all_sources(sources_list, translated_q, filters_dict)
-                                
-                                res1, res2 = await asyncio.gather(task1, task2)
-                                
-                                # Sonuçları birleştir (Deduplication - DOI bazlı filtreleme)
-                                combined_results = res1.get("results", []) + res2.get("results", [])
-                                combined_errors = res1.get("errors", []) + res2.get("errors", [])
-                                
-                                # Tekilleştirme
-                                seen_dois = set()
-                                unique_results = []
-                                for item in combined_results:
-                                    doi = item.get("DOI", "-")
-                                    if doi != "-" and doi in seen_dois:
-                                        continue
-                                    seen_dois.add(doi)
-                                    unique_results.append(item)
-                                    
-                                return {"results": unique_results, "errors": combined_errors}
-                                
-                        # Tek dil seçiliyse veya çeviri başarısızsa standart arama
-                        return await fetch_all_sources(sources_list, q, filters_dict)
-
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
-                        return loop.run_until_complete(run_fetch())
-                    finally:
-                        loop.close()
-                    
                 filters = {
                     'start_year': start_year,
                     'end_year': end_year,
@@ -372,6 +369,12 @@ else:
             if all_results:
                 df = pd.DataFrame(all_results)
                 
+                # Optimize memory overhead by converting low-cardinality strings to categorical type
+                if 'Kaynak' in df.columns:
+                    df['Kaynak'] = df['Kaynak'].astype('category')
+                if 'Erişim Durumu' in df.columns:
+                    df['Erişim Durumu'] = df['Erişim Durumu'].astype('category')
+
                 # --- Advanced Data Filtering (Post-Search) ---
                 with st.sidebar:
                     st.markdown("<h2 style='font-family:\"Anton\"; color:#00D2FF; letter-spacing:1px;'>⚙️ SONUÇ FİLTRELERİ</h2>", unsafe_allow_html=True)
