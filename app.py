@@ -424,7 +424,7 @@ else:
                     
                     # Prepare JSON payload for the AI
                     items_to_rank = []
-                    for idx, row in top_15_df.iterrows():
+                    for idx, row in zip(top_15_df.index, top_15_df.to_dict('records')):
                         items_to_rank.append({
                             "id": str(idx), # Using dataframe index as temporary ID
                             "title": str(row.get("Başlık", "")),
@@ -558,7 +558,7 @@ else:
                         )
                         st.session_state.scroll_to_top = False
                     
-                    for idx, (_, row) in enumerate(page_df.iterrows()):
+                    for idx, row in enumerate(page_df.to_dict('records')):
                         with st.container():
                             render_article_card(row, index=idx)
                     
