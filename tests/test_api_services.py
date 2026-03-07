@@ -6,7 +6,8 @@ from api_services.arxiv import ArxivScraper
 @pytest.mark.asyncio
 async def test_crossref_scraper():
     scraper = CrossrefScraper()
-    results = await scraper.fetch(query="machine learning", start_year=2020, end_year=2023)
+    response = await scraper.fetch(query="machine learning", filters={"start_year": 2020, "end_year": 2023})
+    results = response.get("data", [])
     
     # Check if results is a list
     assert isinstance(results, list)
@@ -21,7 +22,8 @@ async def test_crossref_scraper():
 @pytest.mark.asyncio
 async def test_arxiv_scraper():
     scraper = ArxivScraper()
-    results = await scraper.fetch(query="quantum computing", start_year=2021, end_year=2022)
+    response = await scraper.fetch(query="quantum computing", filters={"start_year": 2021, "end_year": 2022})
+    results = response.get("data", [])
     
     assert isinstance(results, list)
     

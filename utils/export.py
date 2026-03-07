@@ -5,7 +5,7 @@ def generate_bibtex(df: pd.DataFrame) -> str:
     """Generate a valid BibTeX string from a DataFrame of search results."""
     bibtex_entries = []
     
-    for _, row in df.iterrows():
+    for row in df.to_dict('records'):
         # Clean up some data
         authors = row.get("Yazarlar", "Unknown")
         # Bibtex expects authors separated by ' and '
