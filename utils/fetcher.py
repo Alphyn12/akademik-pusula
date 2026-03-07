@@ -38,7 +38,7 @@ async def fetch_all_sources(sources: List[str], query: str, filters: Dict[str, A
         if scraper_class:
             scraper = scraper_class()
             coro = scraper.fetch(query, filters)
-            task = asyncio.wait_for(coro, timeout=40.0)
+            task = asyncio.create_task(asyncio.wait_for(coro, timeout=40.0))
             tasks.append(task)
             
     # Gather all results concurrently

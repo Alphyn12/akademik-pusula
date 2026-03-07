@@ -85,21 +85,21 @@ async def chat_with_paper_consensus(paper_title: str, paper_abstract: str, user_
     
     async with httpx.AsyncClient() as client:
         # Step 1: Researcher and Critic run in parallel (approx 1.5 - 2 seconds on Groq)
-        researcher_task = call_groq_model(
+        researcher_task = asyncio.create_task(call_groq_model(
             client=client, 
             model="qwen/qwen3-32b", 
             system_prompt=RESEARCHER_PROMPT, 
             user_prompt=f"{context}\n\nLütfen yalnızca aşağıdaki KULLANICI SORUSU tagleri içindeki yönergeye yanıt ver:\n<user_question>\n{user_question}\n</user_question>",
             temperature=0.1 # Needs exact data extraction
-        )
+        ))
         
-        critic_task = call_groq_model(
+        critic_task = asyncio.create_task(call_groq_model(
             client=client, 
             model="meta-llama/llama-4-scout-17b-16e-instruct", 
             system_prompt=CRITIC_PROMPT, 
             user_prompt=f"{context}\n\nLütfen yalnızca aşağıdaki KULLANICI SORUSU tagleri içindeki yönergeye yanıt ver:\n<user_question>\n{user_question}\n</user_question>",
             temperature=0.4 # More creative/aggressive
-        )
+        ))
         
         researcher_report, critic_report = await asyncio.gather(researcher_task, critic_task)
         
