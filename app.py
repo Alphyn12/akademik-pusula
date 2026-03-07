@@ -424,7 +424,7 @@ else:
                     
                     # Prepare JSON payload for the AI
                     items_to_rank = []
-                    for idx, row in top_15_df.iterrows():
+                    for idx, row in zip(top_15_df.index, top_15_df.to_dict('records')):
                         items_to_rank.append({
                             "id": str(idx), # Using dataframe index as temporary ID
                             "title": str(row.get("Başlık", "")),
