@@ -3,51 +3,6 @@ import pandas as pd
 import html
 from utils.citation import format_apa_7
 
-def inject_ga(measurement_id="G-YHN57XNL0S"):
-    """
-    Robust GA4 injection for Streamlit.
-    Tries to attach to the parent window for better tracking but falls back to the iframe
-    if cross-origin restrictions (like on some hosting providers) are active.
-    """
-    ga_script = f"""
-    <script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
-        gtag('config', '{measurement_id}', {{ 'send_page_view': true }});
-
-        // Global helper for event tracking
-        window.sendGAEvent = function(eventName, params) {{
-            gtag('event', eventName, params);
-        }};
-
-        // Try to expose to parent window for unified tracking across frames
-        try {{
-            if (window.parent && window.parent.window) {{
-                window.parent.window.gtag = gtag;
-                window.parent.window.sendGAEvent = window.sendGAEvent;
-                
-                // Track all link clicks in parent window automatically
-                window.parent.document.addEventListener('click', function(e) {{
-                    const link = e.target.closest('a');
-                    if (link && link.href) {{
-                        gtag('event', 'click', {{
-                            'event_category': 'outbound',
-                            'event_label': link.innerText || link.href,
-                            'link_url': link.href
-                        }});
-                    }}
-                }}, true);
-                console.log("GA: Successfully attached to parent window.");
-            }}
-        }} catch (e) {{
-            console.warn("GA: Parent window access restricted. Tracking locally in iframe.");
-        }}
-    </script>
-    """
-    st.components.v1.html(ga_script, height=0, width=0)
-
 def track_ga_event(event_name, params=None):
     """Sends an event to GA. Tries parent window first, then local iframe."""
     import json

@@ -5,12 +5,47 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import urllib.parse
+from pathlib import Path
+
+# --- GA4 Root Injection Hack ---
+def inject_ga_root():
+    """Streamlit'in kök HTML dosyasına Google Analytics kodunu enjekte eder (Railway/Production için)."""
+    GA_ID = "G-YHN57XNL0S"
+    index_path = Path(st.__file__).parent / "static" / "index.html"
+    
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        if GA_ID not in html_content:
+            ga_script = f"""
+            <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){{dataLayer.push(arguments);}}
+              gtag('js', new Date());
+              gtag('config', '{GA_ID}');
+
+              // Global helper for event tracking
+              window.sendGAEvent = function(eventName, params) {{
+                  gtag('event', eventName, params);
+              }};
+            </script>
+            """
+            new_html = html_content.replace('<head>', f'<head>\n{ga_script}')
+            with open(index_path, "w", encoding="utf-8") as f:
+                f.write(new_html)
+    except Exception:
+        pass
+
+# Uygulama başlar başlamaz enjeksiyonu tetikle
+inject_ga_root()
 
 # --- Page Config ---
 st.set_page_config(page_title="Akademik Pusula", page_icon="🧭", layout="wide", initial_sidebar_state="collapsed")
 
-from components.ui_components import inject_ga, track_ga_event
-inject_ga("G-YHN57XNL0S")
+from components.ui_components import track_ga_event
+# (Not: iframe tabanlı inject_ga kaldırıldı, artık root HTML üzerinden çalışıyor)
 
 # --- PWA SETUP ---
 import streamlit.components.v1 as components
