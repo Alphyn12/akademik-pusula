@@ -12,6 +12,7 @@ class OpenAlexScraper(BaseScraper):
     async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         results = []
         try:
+            search_type = filters.get('search_type', 'Kavram/Kelime Arama')
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
@@ -20,20 +21,30 @@ class OpenAlexScraper(BaseScraper):
             # Filter by year. 
             # OpenAlex provides up to 100k free requests per day without API key.
             # Using polite pool by providing an email in User-Agent is recommended.
-
-            url = f"https://api.openalex.org/works?search={urllib.parse.quote(query)}"
-            url += f"&filter=publication_year:{start_year}-{end_year},language:en|tr"
-            
-            # Limit to 15 results
-            url += "&per-page=15"
-            
             headers = {'User-Agent': 'mailto:engineering@example.com'}
+
+            if search_type == "DOI Numarası":
+                import re
+                doi_match = re.search(r'(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)', query)
+                clean_doi = doi_match.group(1) if doi_match else query.strip()
+                url = f"https://api.openalex.org/works/https://doi.org/{clean_doi}"
+            elif search_type == "Yazar Adı":
+                url = f"https://api.openalex.org/works?filter=raw_author_name.search:{urllib.parse.quote(query)}"
+                url += f",publication_year:{start_year}-{end_year}&per-page=15"
+            else:
+                url = f"https://api.openalex.org/works?search={urllib.parse.quote(query)}"
+                url += f"&filter=publication_year:{start_year}-{end_year},language:en|tr&per-page=15"
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers, timeout=12) as response:
                     if response.status == 200:
                         data = await response.json()
-                        items = data.get('results', [])
+                        
+                        # Handle DOI single item response vs list response
+                        if search_type == "DOI Numarası" and "id" in data:
+                            items = [data]
+                        else:
+                            items = data.get('results', [])
                         
                         for item in items:
                             try:

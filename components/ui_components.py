@@ -2,6 +2,61 @@ import streamlit as st
 import pandas as pd
 from utils.citation import format_apa_7
 
+def inject_ga(measurement_id="G-YHN57XNL0S"):
+    """Injects Google Analytics standard script tag into Streamlit app for tracking across parent windows."""
+    ga_script = f"""
+    <script>
+      (function() {{
+        const head = window.parent.document.head;
+        if (!head.querySelector(`script[src*="googletagmanager.com/gtag/js?id={measurement_id}"]`)) {{
+          const script = window.parent.document.createElement('script');
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id={measurement_id}";
+          head.appendChild(script);
+
+          const inlineScript = window.parent.document.createElement('script');
+          inlineScript.innerHTML = `
+            window.parent.window.dataLayer = window.parent.window.dataLayer || [];
+            window.parent.window.gtag = function(){{ window.parent.window.dataLayer.push(arguments); }};
+            window.parent.window.gtag('js', new Date());
+            window.parent.window.gtag('config', '{measurement_id}', {{ 'send_page_view': true }});
+            
+            // Global helper for event tracking accessible from iframes
+            window.parent.window.sendGAEvent = function(eventName, params) {{
+              if (window.parent.window.gtag) {{
+                window.parent.window.gtag('event', eventName, params);
+                console.log('GA Event Sent:', eventName, params);
+              }}
+            }};
+
+            // Auto-track all link clicks in the parent document
+            window.parent.document.addEventListener('click', function(e) {{
+              const link = e.target.closest('a');
+              if (link && link.href) {{
+                window.parent.window.sendGAEvent('click', {{
+                  'event_category': 'outbound',
+                  'event_label': link.innerText || link.href,
+                  'link_url': link.href
+                }});
+              }}
+            }}, true);
+          `;
+          head.appendChild(inlineScript);
+        }}
+      }})();
+    </script>
+    """
+    st.components.v1.html(ga_script, height=0, width=0)
+
+def track_ga_event(event_name, params=None):
+    """Sends an event to Google Analytics via the injected parent window function."""
+    import json
+    if params is None:
+        params = {}
+    params_json = json.dumps(params)
+    js = f"<script>window.parent.window.sendGAEvent('{event_name}', {params_json});</script>"
+    st.components.v1.html(js, height=0, width=0)
+
 def render_metrics(df: pd.DataFrame, sci_hub_base: str):
     """Renders the top key metric cards."""
     col_m1, col_m2, col_m3 = st.columns(3)

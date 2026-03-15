@@ -16,10 +16,14 @@ class ArxivScraper(BaseScraper):
             end_year = filters.get('end_year', 2026)
             
             encoded_query = urllib.parse.quote(query)
-            url = f"http://export.arxiv.org/api/query?search_query=ti:{encoded_query}+OR+abs:{encoded_query}&start=0&max_results=20"
+            search_type = filters.get('search_type', 'Kavram/Kelime Arama')
+            if search_type == "Yazar Adı":
+                url = f"https://export.arxiv.org/api/query?search_query=au:{encoded_query}&start=0&max_results=20"
+            else:
+                url = f"https://export.arxiv.org/api/query?search_query=ti:{encoded_query}+OR+abs:{encoded_query}&start=0&max_results=20"
             
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=10) as response:
+                async with session.get(url, timeout=30) as response:
                     if response.status == 200:
                         text = await response.text()
                         soup = BeautifulSoup(text, 'xml')

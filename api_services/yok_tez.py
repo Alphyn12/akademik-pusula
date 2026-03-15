@@ -1,19 +1,19 @@
 import asyncio
 from typing import List, Dict, Any
 from utils.scraper_base import BaseScraper
-from api_services.openalex import OpenAlexScraper
+from utils.mcp_manager import YokTezMCPManager
 
 class YokTezScraper(BaseScraper):
     def __init__(self):
         super().__init__("YÖK Tez / TR Üniversiteleri")
-        self.oa_scraper = OpenAlexScraper()
+        self.mcp = YokTezMCPManager()
         
     async def fetch(self, query: str, filters: Dict[str, Any]) -> Dict[str, Any]:
         try:
-            yok_query = f"{query} thesis turkey university"
+            search_type = filters.get('search_type', 'Kavram/Kelime Arama')
             
-            # Delegate entirely to the async OpenAlexScraper
-            result = await self.oa_scraper.fetch(yok_query, filters)
+            # Delegate entirely to the MCP
+            result = await self.mcp.fetch(query, search_type=search_type)
             
             # Rewrite metadata to match YokTez
             if result.get("status") == "success":

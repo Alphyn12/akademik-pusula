@@ -10,6 +10,7 @@ from api_services.tr_dizin import TRDizinScraper
 from api_services.elsevier import ElsevierScraper
 from api_services.springer import SpringerScraper
 from api_services.asme import ASMEScraper
+from api_services.ieee import IEEEScraper
 
 # Mapping of source names to their respective scraper classes
 scraper_map = {
@@ -21,7 +22,8 @@ scraper_map = {
     "TR Kaynaklı / TR Dizin": TRDizinScraper,
     "Elsevier (ScienceDirect)": ElsevierScraper,
     "Springer": SpringerScraper,
-    "ASME": ASMEScraper
+    "ASME": ASMEScraper,
+    "IEEE Xplore": IEEEScraper
 }
 
 async def fetch_all_sources(sources: List[str], query: str, filters: Dict[str, Any]) -> Dict[str, Any]:

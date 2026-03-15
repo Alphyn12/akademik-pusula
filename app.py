@@ -7,7 +7,10 @@ import time
 import urllib.parse
 
 # --- Page Config ---
-st.set_page_config(page_title="Akademik Pusula 🧭", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Akademik Pusula", page_icon="🧭", layout="wide", initial_sidebar_state="collapsed")
+
+from components.ui_components import inject_ga, track_ga_event
+inject_ga("G-YHN57XNL0S")
 
 # --- PWA SETUP ---
 import streamlit.components.v1 as components
@@ -63,6 +66,8 @@ def load_css(file_path):
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 load_css(os.path.join(os.path.dirname(__file__), 'assets', 'style.css'))
+# SEO and Mobile CSS Fixes for V6
+st.markdown("<style>div[data-testid='stDataFrame'] { overflow-x: auto; max-width: 100%; }</style>", unsafe_allow_html=True)
 
 
 
@@ -98,6 +103,13 @@ if st.session_state.view_mode == "focus":
     render_article_card(paper, index=0, is_focus_mode=True)
         
     st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
+    
+    # Track Paper Focus
+    track_ga_event("article_focus", {
+        "title": paper.get("Başlık", "Bilinmiyor"),
+        "source": paper.get("Kaynak", "Bilinmiyor"),
+        "deep_analysis": st.session_state.get("force_full_text", False)
+    })
     
     # Check if Full Text was requested
     is_deep_analysis = st.session_state.get("force_full_text", False)
@@ -164,6 +176,12 @@ if st.session_state.view_mode == "focus":
                 ))
                 st.markdown(answer)
         st.session_state.chat_history.append({"role": "assistant", "content": answer})
+        
+        # Track AI Question
+        track_ga_event("ai_interaction", {
+            "question": prompt,
+            "paper_title": paper.get("Başlık", "Bilinmiyor")
+        })
 
 elif st.session_state.view_mode == "global_chat":
     # --- GLOBAL CHAT MODE (INDEPENDENT) ---
@@ -207,6 +225,11 @@ elif st.session_state.view_mode == "global_chat":
                 ))
                 st.markdown(answer)
         st.session_state.chat_history_global.append({"role": "assistant", "content": answer})
+        # Track Global AI Question
+        track_ga_event("global_ai_interaction", {
+            "question": prompt,
+            "context": "global_chat"
+        })
 
 else:
     # ------------------ SEARCH MODE ------------------
@@ -215,10 +238,16 @@ else:
 
     with col_center:
         def trigger_search():
+            st.cache_data.clear() # Prevent stuck timeout errors from caching
             st.session_state.search_triggered = True
             st.session_state.last_query = st.session_state.search_query_input
             st.session_state.all_results_cache = []
             st.session_state.page_number = 1
+
+        with st.container():
+            st.markdown("<div style='text-align: center; margin-bottom: 20px;'>", unsafe_allow_html=True)
+            # Mod ayrımı kaldırıldı. Artık tüm taramalar tek noktadan asenkron gerçekleşiyor.
+            st.markdown("</div>", unsafe_allow_html=True)
 
         with st.form(key="search_form", clear_on_submit=False):
             search_query = st.text_input("Arama Terimi", placeholder="Mühendislik literatüründe arayın...", label_visibility="collapsed", key="search_query_input")
@@ -226,7 +255,8 @@ else:
             with st.expander("⚙️ Tarama Seçenekleri ve Sci-Hub Ayarları", expanded=True):
                 ecol1, ecol2 = st.columns(2)
                 with ecol1:
-                    db_options = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "Elsevier (ScienceDirect)", "Springer", "ASME"]
+                    search_type = st.selectbox("Arama Tipi", ["Kavram/Kelime Arama", "DOI Numarası", "Yazar Adı"], key="search_type_input")
+                    db_options = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "IEEE Xplore", "Elsevier (ScienceDirect)", "Springer", "ASME"]
                     default_dbs = ["OpenAlex (Global)", "Crossref", "arXiv", "DergiPark", "YÖK Tez / TR Üniversiteleri", "TR Kaynaklı / TR Dizin", "ASME"]
                     sources = st.multiselect("Veritabanları", 
                                              db_options,
@@ -254,6 +284,13 @@ else:
         elif not sources:
             st.error("Lütfen en az bir veritabanı seçin.", icon="⚠️")
         else:
+            # Track Search Event
+            track_ga_event("search", {
+                "search_term": query_to_run,
+                "search_type": st.session_state.get('search_type_input', 'Kavram/Kelime Arama'),
+                "sources": ", ".join(sources)
+            })
+            
             # Check cache logic
             if not st.session_state.get('all_results_cache'):
                 st.markdown("<br><hr style='border-color: #333;'><br>", unsafe_allow_html=True)
@@ -266,7 +303,7 @@ else:
                     
                     loading_html = """
     <div style="border: 4px solid #CCFF00; background-color: #111; padding: 40px; text-align: center; box-shadow: 8px 8px 0px #00D2FF; margin: 40px auto; max-width: 800px;">
-    <h3 style="font-family: 'Anton', sans-serif; color: #CCFF00; font-size: 2.2rem; letter-spacing: 2px; margin-top:0; margin-bottom:0; text-transform: uppercase;">🧭 AKADEMİK PUSULA AI ⚡ LİTERATÜR TARIYOR... LÜTFEN BEKLEYİN.</h3>
+    <h3 style="font-family: 'Anton', sans-serif; color: #CCFF00; font-size: 2.2rem; letter-spacing: 2px; margin-top:0; margin-bottom:0; text-transform: uppercase;">🧭 AKADEMİK PUSULA ⚡ LİTERATÜR TARIYOR... LÜTFEN BEKLEYİN.</h3>
     </div>
                     """
                     st.markdown(loading_html, unsafe_allow_html=True)
@@ -281,36 +318,36 @@ else:
                         height=0
                     )
                 
-                @st.cache_data(ttl=3600, show_spinner=False)
-                def fetch_data_cached(sources_list, q, filters_dict):
+                @st.cache_data(ttl=1800, show_spinner=False)
+                def fetch_data_cached(search_type_str, sources_list, q, filters_dict):
                     import asyncio
                     from utils.fetcher import fetch_all_sources
                     from utils.ai_manager import translate_query
                     
                     async def run_fetch():
+                        nonlocal q
+                        filters_dict['search_type'] = search_type_str
                         selected_langs = filters_dict.get('language', [])
                         
-                        # 1) Sadece Türkçe seçiliyse -> Orijinal query Türkçe farz edilir.
-                        # 2) Sadece İngilizce seçiliyse -> Orijinal query İngilizce farz edilir.
-                        # 3) İki dil birden seçiliyse (Cross-Lingual) -> Query'i diğer dile çevir ve İKİSİNİ BİRDEN asenkron ara!
+                        # Smart Routing & Auto-Translation
+                        is_turkish = "Türkçe" in q or any(c in q.lower() for c in ['ş','ç','ğ','ü','ö','ı'])
+                        if "Türkçe" not in selected_langs and "İngilizce" in selected_langs and is_turkish:
+                            q = await translate_query(q, target_lang="en")
+                        
+                        # Cross-Lingual Fallback (Turkish and English both selected)
                         if len(selected_langs) == 2:
-                            # Hızlıca query'i hem İngilizce hem Türkçe olacak şekilde hazırla
-                            # Basit heuristic: Eğer argümanda ASCII harici karakter (ş, ç, ğ) varsa Türkçedir, yoksa Llama karar versin
-                            translated_q = await translate_query(q, target_lang="en" if "Türkçe" in q else "tr") # Hedefi değişimli ayarlayabiliriz ama Llama zaten algılayıp zıttını dönecektir
+                            target = "en" if is_turkish else "tr"
+                            translated_q = await translate_query(q, target_lang=target)
                             
-                            # Güvenli çeviri kontrolü
                             if translated_q and translated_q.lower() != q.lower():
-                                # İki ayrı arama task'i oluştur
                                 task1 = fetch_all_sources(sources_list, q, filters_dict)
                                 task2 = fetch_all_sources(sources_list, translated_q, filters_dict)
                                 
                                 res1, res2 = await asyncio.gather(task1, task2)
                                 
-                                # Sonuçları birleştir (Deduplication - DOI bazlı filtreleme)
                                 combined_results = res1.get("results", []) + res2.get("results", [])
                                 combined_errors = res1.get("errors", []) + res2.get("errors", [])
                                 
-                                # Tekilleştirme
                                 seen_dois = set()
                                 unique_results = []
                                 for item in combined_results:
@@ -322,7 +359,6 @@ else:
                                     
                                 return {"results": unique_results, "errors": combined_errors}
                                 
-                        # Tek dil seçiliyse veya çeviri başarısızsa standart arama
                         return await fetch_all_sources(sources_list, q, filters_dict)
 
                     loop = asyncio.new_event_loop()
@@ -338,7 +374,10 @@ else:
                     'language': language
                 }
                 
-                fetch_output = fetch_data_cached(sources, query_to_run, filters)
+                fetch_output = fetch_data_cached(
+                    st.session_state.get('search_type_input', 'Kavram/Kelime Arama'),
+                    sources, query_to_run, filters
+                )
                     
                 loading_container.empty()
                 st.session_state.all_results_cache = fetch_output.get("results", [])
@@ -360,12 +399,18 @@ else:
 
             if all_results:
                 if exact_match_only:
+                    def tr_lower(text):
+                        if not text: return ""
+                        return text.replace('İ', 'i').replace('I', 'ı').lower()
+                        
                     filtered_res = []
-                    q_lower = query_to_run.lower()
+                    q_lower = tr_lower(query_to_run)
                     for item in all_results:
-                        title = str(item.get("Başlık", "")).lower()
-                        abstract = str(item.get("Özet", "")).lower()
-                        if q_lower in title or q_lower in abstract:
+                        title = tr_lower(str(item.get("Başlık", "")))
+                        abstract = tr_lower(str(item.get("Özet", "")))
+                        yazar = tr_lower(str(item.get("Yazarlar", "")))
+                        
+                        if q_lower in title or q_lower in abstract or q_lower in yazar:
                             filtered_res.append(item)
                     all_results = filtered_res
 

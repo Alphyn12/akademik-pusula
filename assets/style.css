@@ -150,6 +150,64 @@ div[data-testid="InputInstructions"] {
     padding: 0 !important;
 }
 
+/* Arama Tipi Selectbox Özel Stilleri (Kesin Çözüm - Tarayıcı İncelemesi İle) */
+.st-key-search_type_input [data-testid="stSelectbox"] div[data-baseweb="select"] {
+    border: 4px solid #CCFF00 !important;
+    background-color: transparent !important;
+    min-height: 80px !important;
+    box-shadow: 8px 8px 0px #00D2FF !important;
+    border-radius: 0px !important;
+    transition: all 0.2s;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.st-key-search_type_input [data-testid="stSelectbox"] div[data-baseweb="select"]:focus-within {
+    transform: translate(-4px, -4px);
+    box-shadow: 12px 12px 0px #00D2FF !important;
+}
+
+/* İç yapıdaki gereksiz sınırları ve arka planları temizle */
+.st-key-search_type_input [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* Metnin hiyerarşik ortalanması */
+.st-key-search_type_input [data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div:first-child {
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+/* Asıl metin değerini (div[value]) hedefle, kalınlaştır ve ortala - Sci-Hub URL ile birebir eşlik */
+.st-key-search_type_input [data-testid="stSelectbox"] div[value] {
+    color: #FFFFFF !important;
+    font-size: 1.5rem !important; /* Sci-Hub: 1.5rem */
+    font-family: 'Space Mono', monospace !important;
+    font-weight: 700 !important; /* Sci-Hub: 700 / Bold */
+    text-align: center !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+}
+
+/* Sağdaki ok (chevron) ikonunu yazıyı kaydırmadan kenara al */
+.st-key-search_type_input [data-testid="stSelectbox"] svg {
+    margin-right: 15px !important;
+    position: absolute !important;
+    right: 0 !important;
+    z-index: 10;
+}
+
 /* Brutalist Selectbox/Dropdown for Sorting */
 .brutalist-dropdown [data-baseweb="select"] {
     background-color: #0e1117 !important;
