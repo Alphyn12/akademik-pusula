@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import html
 from utils.citation import format_apa_7
 
 def inject_ga(measurement_id="G-YHN57XNL0S"):
@@ -105,16 +106,16 @@ def render_article_card(row: pd.Series, index: int, is_focus_mode: bool = False)
     # HTML string using brutalist aesthetic (Restored Original with NO empty lines to fix raw HTML bug, added safe classes for mobile CSS)
     html_content = f"""<div class="article-card-box" style="border: 4px solid {borderColor}; background-color: #111; padding: 25px; border-radius: 0; box-shadow: 8px 8px 0px {boxShadowColor}; margin-bottom: 30px;">
 <div class="article-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-<h2 class="article-title" style="margin: 0; padding: 0; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; color: #FFF; font-size: 2.2rem; line-height: 1.1; word-break: break-word;">{row['Başlık']}</h2>
+<h2 class="article-title" style="margin: 0; padding: 0; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; color: #FFF; font-size: 2.2rem; line-height: 1.1; word-break: break-word;">{html.escape(str(row['Başlık']))}</h2>
 <div class="article-doi" style="background-color: #050505; color: #CCFF00; padding: 5px 12px; border: 2px solid #CCFF00; font-family: 'Space Mono', monospace; font-size: 1.05rem; font-weight: bold; white-space: nowrap; height: fit-content; margin-left:15px; box-shadow: 4px 4px 0px #050505;">
-📝 DOI: {row.get('DOI', '-')}
+📝 DOI: {html.escape(str(row.get('DOI', '-')))}
 </div>
 </div>
 <div class="article-meta" style="color: #00D2FF; font-family: 'Space Mono', monospace; font-weight: bold; font-size: 1.1rem; border-bottom: 2px dashed #444; padding-bottom: 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
-<span>📍 Kaynak: {row['Kaynak']}</span> <span class="meta-sep">|</span> <span>📅 Yıl: {row['Yıl']}</span> <span class="meta-sep">|</span> <span>🔒 Erişim: {row['Erişim Durumu']}</span>
+<span>📍 Kaynak: {html.escape(str(row['Kaynak']))}</span> <span class="meta-sep">|</span> <span>📅 Yıl: {html.escape(str(row['Yıl']))}</span> <span class="meta-sep">|</span> <span>🔒 Erişim: {html.escape(str(row['Erişim Durumu']))}</span>
 </div>
 <p style="color: #CCC; font-size: 1rem; line-height: 1.6; font-family: 'Space Mono', monospace; margin-bottom: 25px;">
-<b>Özet:</b> {str(row.get('Özet', ''))[:450]}{'...' if len(str(row.get('Özet', ''))) > 450 else ''}
+<b>Özet:</b> {html.escape(str(row.get('Özet', ''))[:450])}{'...' if len(str(row.get('Özet', ''))) > 450 else ''}
 </p>
 <div style="background-color:#1a1c23; border:2px solid #555; padding:15px; margin-bottom:25px; border-left:4px solid #CCFF00;">
 <p style="color:#FFF; font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:1px; margin:0 0 5px 0;">📌 APA REFERANS FORMATI:</p>
