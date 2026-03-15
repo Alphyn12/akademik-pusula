@@ -3,58 +3,69 @@ import pandas as pd
 from utils.citation import format_apa_7
 
 def inject_ga(measurement_id="G-YHN57XNL0S"):
-    """Injects Google Analytics standard script tag into Streamlit app for tracking across parent windows."""
+    """
+    Robust GA4 injection for Streamlit.
+    Tries to attach to the parent window for better tracking but falls back to the iframe
+    if cross-origin restrictions (like on some hosting providers) are active.
+    """
     ga_script = f"""
+    <script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
     <script>
-      (function() {{
-        const head = window.parent.document.head;
-        if (!head.querySelector(`script[src*="googletagmanager.com/gtag/js?id={measurement_id}"]`)) {{
-          const script = window.parent.document.createElement('script');
-          script.async = true;
-          script.src = "https://www.googletagmanager.com/gtag/js?id={measurement_id}";
-          head.appendChild(script);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{measurement_id}', {{ 'send_page_view': true }});
 
-          const inlineScript = window.parent.document.createElement('script');
-          inlineScript.innerHTML = `
-            window.parent.window.dataLayer = window.parent.window.dataLayer || [];
-            window.parent.window.gtag = function(){{ window.parent.window.dataLayer.push(arguments); }};
-            window.parent.window.gtag('js', new Date());
-            window.parent.window.gtag('config', '{measurement_id}', {{ 'send_page_view': true }});
-            
-            // Global helper for event tracking accessible from iframes
-            window.parent.window.sendGAEvent = function(eventName, params) {{
-              if (window.parent.window.gtag) {{
-                window.parent.window.gtag('event', eventName, params);
-                console.log('GA Event Sent:', eventName, params);
-              }}
-            }};
+        // Global helper for event tracking
+        window.sendGAEvent = function(eventName, params) {{
+            gtag('event', eventName, params);
+        }};
 
-            // Auto-track all link clicks in the parent document
-            window.parent.document.addEventListener('click', function(e) {{
-              const link = e.target.closest('a');
-              if (link && link.href) {{
-                window.parent.window.sendGAEvent('click', {{
-                  'event_category': 'outbound',
-                  'event_label': link.innerText || link.href,
-                  'link_url': link.href
-                }});
-              }}
-            }}, true);
-          `;
-          head.appendChild(inlineScript);
+        // Try to expose to parent window for unified tracking across frames
+        try {{
+            if (window.parent && window.parent.window) {{
+                window.parent.window.gtag = gtag;
+                window.parent.window.sendGAEvent = window.sendGAEvent;
+                
+                // Track all link clicks in parent window automatically
+                window.parent.document.addEventListener('click', function(e) {{
+                    const link = e.target.closest('a');
+                    if (link && link.href) {{
+                        gtag('event', 'click', {{
+                            'event_category': 'outbound',
+                            'event_label': link.innerText || link.href,
+                            'link_url': link.href
+                        }});
+                    }}
+                }}, true);
+                console.log("GA: Successfully attached to parent window.");
+            }}
+        }} catch (e) {{
+            console.warn("GA: Parent window access restricted. Tracking locally in iframe.");
         }}
-      }})();
     </script>
     """
     st.components.v1.html(ga_script, height=0, width=0)
 
 def track_ga_event(event_name, params=None):
-    """Sends an event to Google Analytics via the injected parent window function."""
+    """Sends an event to GA. Tries parent window first, then local iframe."""
     import json
     if params is None:
         params = {}
     params_json = json.dumps(params)
-    js = f"<script>window.parent.window.sendGAEvent('{event_name}', {params_json});</script>"
+    js = f"""
+    <script>
+        try {{
+            if (window.parent && window.parent.window && window.parent.window.sendGAEvent) {{
+                window.parent.window.sendGAEvent("{event_name}", {params_json});
+            }} else if (window.sendGAEvent) {{
+                window.sendGAEvent("{event_name}", {params_json});
+            }}
+        }} catch (e) {{
+            if (window.sendGAEvent) window.sendGAEvent("{event_name}", {params_json});
+        }}
+    </script>
+    """
     st.components.v1.html(js, height=0, width=0)
 
 def render_metrics(df: pd.DataFrame, sci_hub_base: str):
