@@ -16,12 +16,9 @@ class OpenAlexScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            # Using OpenAlex API
-            # Search by title/abstract/full text. Format: https://api.openalex.org/works?search=query
-            # Filter by year. 
-            # OpenAlex provides up to 100k free requests per day without API key.
-            # Using polite pool by providing an email in User-Agent is recommended.
-            headers = {'User-Agent': 'mailto:engineering@example.com'}
+            import streamlit as st
+            email = st.secrets.get("OPENALEX_EMAIL", "engineering@example.com")
+            headers = {'User-Agent': f'mailto:{email}'}
 
             if search_type == "DOI Numarası":
                 import re
