@@ -16,8 +16,7 @@ class OpenAlexScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            import streamlit as st
-            email = st.secrets.get("OPENALEX_EMAIL", "engineering@example.com")
+            email = self.get_config(None, "OPENALEX_EMAIL", "bariskirli@trakya.edu.tr")
             headers = {'User-Agent': f'mailto:{email}'}
 
             if search_type == "DOI Numarası":
