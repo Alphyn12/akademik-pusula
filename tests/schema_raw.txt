@@ -1,0 +1,296 @@
+{
+  "$defs": {
+    "YokTezInstituteGroupEnum": {
+      "description": "Enum for institute groups (e.g., Science, Social Sciences).",
+      "enum": [
+        "",
+        "F",
+        "S",
+        "T"
+      ],
+      "type": "string"
+    },
+    "YokTezLanguageEnum": {
+      "description": "Enum for thesis language.",
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "11",
+        "12"
+      ],
+      "type": "string"
+    },
+    "YokTezPermissionStatusEnum": {
+      "description": "Enum for PDF permission status on Y\u00d6K Tez.",
+      "enum": [
+        "0",
+        "1",
+        "2"
+      ],
+      "type": "string"
+    },
+    "YokTezStatusEnum": {
+      "description": "Enum for the submission status of the thesis.",
+      "enum": [
+        "3",
+        "3",
+        "1",
+        "0"
+      ],
+      "type": "string"
+    },
+    "YokTezThesisTypeEnum": {
+      "description": "Enum for Y\u00d6K Thesis Types. Values correspond to form field options.",
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "thesis_title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Thesis title to search for. E.g., 'artificial intelligence', 'climate change impacts'."
+    },
+    "author_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Author's name and surname. Y\u00d6K system might be case-sensitive; typically uppercase. E.g., 'AY\u015eE YILMAZ'."
+    },
+    "advisor_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Advisor's name and surname. Typically uppercase. E.g., 'MEHMET \u00d6ZT\u00dcRK'."
+    },
+    "university_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "University name to filter by. E.g., '\u0130stanbul \u00dcniversitesi'."
+    },
+    "institute_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Institute name to filter by. E.g., 'Sosyal Bilimler Enstit\u00fcs\u00fc'."
+    },
+    "department_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Main discipline/department name. E.g., '\u0130\u015fletme'."
+    },
+    "discipline_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Specific discipline name. E.g., 'Pazarlama'."
+    },
+    "thesis_number": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Specific thesis number."
+    },
+    "subject_headings": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Subject headings or keywords."
+    },
+    "index_terms": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Index terms."
+    },
+    "abstract_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Text to search within the thesis abstract."
+    },
+    "thesis_type": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/YokTezThesisTypeEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "0",
+      "description": "Type of thesis."
+    },
+    "permission_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/YokTezPermissionStatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "0",
+      "description": "PDF access permission status."
+    },
+    "thesis_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/YokTezStatusEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "3",
+      "description": "Approval status of the thesis."
+    },
+    "language": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/YokTezLanguageEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "0",
+      "description": "Language of the thesis."
+    },
+    "institute_group": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/YokTezInstituteGroupEnum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "",
+      "description": "Group of the institute."
+    },
+    "year_start": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "0",
+      "description": "Start year for the search range (e.g., '2010'). '0' means not selected."
+    },
+    "year_end": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "0",
+      "description": "End year for the search range (e.g., '2023'). '0' means not selected."
+    },
+    "page": {
+      "default": 1,
+      "description": "Page number of the search results.",
+      "minimum": 1,
+      "type": "integer"
+    },
+    "results_per_page": {
+      "default": 10,
+      "description": "Number of results to display per page.",
+      "maximum": 20,
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "type": "object"
+}
