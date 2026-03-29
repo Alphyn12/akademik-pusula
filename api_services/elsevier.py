@@ -27,7 +27,7 @@ class ElsevierScraper(BaseScraper):
             
             # Construct Scopus Advanced Query
             # Example: TITLE-ABS-KEY("machine learning") AND PUBYEAR > 2020 AND PUBYEAR < 2024
-            scopus_query = f"TITLE-ABS-KEY({query}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
+            scopus_query = f"TITLE-ABS-KEY({query}) AND PUBYEAR >= {start_year} AND PUBYEAR <= {end_year}"
             
             headers = {
                 "X-ELS-APIKey": api_key,
@@ -91,12 +91,12 @@ class ElsevierScraper(BaseScraper):
                             
                             link = "-"
                             if item.get('link'):
-                                for l in item['link']:
-                                    if l.get('@ref') == 'scopus':
-                                        link = l.get('@href', '-')
+                                for link_item in item['link']:
+                                    if link_item.get('@ref') == 'scopus':
+                                        link = link_item.get('@href', '-')
                                         break
-                                    if l.get('@ref') == 'scidir' and link == '-':
-                                        link = l.get('@href', '-')
+                                    if link_item.get('@ref') == 'scidir' and link == '-':
+                                        link = link_item.get('@href', '-')
                             if link == "-" and doi != "-":
                                 link = f"https://doi.org/{doi}"
                                         

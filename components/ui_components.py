@@ -1,24 +1,32 @@
+import json
+import urllib.parse
+from typing import Any, Dict, Optional
+
 import streamlit as st
 import pandas as pd
 import html
+
 from utils.citation import format_apa_7
 
-def track_ga_event(event_name, params=None):
+
+def track_ga_event(event_name: str, params: Optional[Dict[str, Any]] = None) -> None:
     """Sends an event to GA. Tries parent window first, then local iframe."""
-    import json
     if params is None:
         params = {}
-    params_json = json.dumps(params)
+    # XSS protection: replace </ with <\/ to prevent script tag injection
+    # json.dumps alone does not escape </script> sequences
+    params_json = json.dumps(params, ensure_ascii=False).replace("</", "<\\/")
+    safe_event_name = event_name.replace('"', '\\"').replace("</", "<\\/")
     js = f"""
     <script>
         try {{
             if (window.parent && window.parent.window && window.parent.window.sendGAEvent) {{
-                window.parent.window.sendGAEvent("{event_name}", {params_json});
+                window.parent.window.sendGAEvent("{safe_event_name}", {params_json});
             }} else if (window.sendGAEvent) {{
-                window.sendGAEvent("{event_name}", {params_json});
+                window.sendGAEvent("{safe_event_name}", {params_json});
             }}
         }} catch (e) {{
-            if (window.sendGAEvent) window.sendGAEvent("{event_name}", {params_json});
+            if (window.sendGAEvent) window.sendGAEvent("{safe_event_name}", {params_json});
         }}
     </script>
     """
@@ -49,7 +57,6 @@ def render_article_card(row: pd.Series, index: int, is_focus_mode: bool = False)
         str(row.get('DOI', '-'))
     )
     
-    import urllib.parse
     clean_doi = ""
     if pd.notna(row.get('DOI')) and row.get('DOI') != "-":
         clean_doi = str(row['DOI']).replace('https://doi.org/', '').replace('http://dx.doi.org/', '')

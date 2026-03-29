@@ -24,8 +24,16 @@ class IEEEScraper(BaseScraper):
                     "data": []
                 }
                 
-            url = f"http://ieeexploreapi.ieee.org/api/v1/search/articles?querytext={urllib.parse.quote(query)}&apikey={api_key}&max_records=15"
-            
+            url = (
+                f"http://ieeexploreapi.ieee.org/api/v1/search/articles"
+                f"?querytext={urllib.parse.quote(query)}"
+                f"&apikey={api_key}"
+                f"&max_records=25"
+                f"&start_year={start_year}"
+                f"&end_year={end_year}"
+                f"&sort_order=relevance"
+            )
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=10) as response:
                     if response.status == 200:
@@ -34,14 +42,11 @@ class IEEEScraper(BaseScraper):
                         for article in articles:
                             try:
                                 title = article.get('title', 'Bilinmiyor')
-                                
+
                                 year = "Bilinmiyor"
                                 pub_year = str(article.get('publication_year', ''))
                                 if pub_year.isdigit():
                                     year = pub_year
-                                    
-                                if str(year).isdigit() and not (start_year <= int(year) <= end_year):
-                                    continue
                                     
                                 authors_dict = article.get('authors', {})
                                 authors_list = authors_dict.get('authors', []) if isinstance(authors_dict, dict) else []

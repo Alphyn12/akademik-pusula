@@ -10,16 +10,12 @@ def format_apa_7(authors_str: str, year: str, title: str, source: str, doi: str)
         if len(authors_list) > 20:
             authors_formatted = ", ".join(authors_list[:19]) + ", ... " + authors_list[-1]
         elif len(authors_list) >= 3:
-            # Simple "et al." approximation if list is too long, 
-            # though APA 7 lists up to 20 authors.
-            # We'll just list them out up to 5 for brevity in UI, then use vd. (et al.)
+            # APA 7 lists up to 20 authors; we list up to 5 for UI brevity, then use vd. (et al.)
             if len(authors_list) > 5:
                 authors_formatted = ", ".join(authors_list[:5]) + " vd."
             else:
-                if len(authors_list) == 1:
-                    authors_formatted = authors_list[0]
-                else:
-                    authors_formatted = ", ".join(authors_list[:-1]) + " & " + authors_list[-1]
+                # len is guaranteed >= 3 here; the dead len==1 branch is removed
+                authors_formatted = ", ".join(authors_list[:-1]) + " & " + authors_list[-1]
         else:
             if len(authors_list) == 1:
                 authors_formatted = authors_list[0]

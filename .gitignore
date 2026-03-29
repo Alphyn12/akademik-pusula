@@ -33,3 +33,22 @@ Desktop.ini
 # Images/assets that might be large and unused
 Adsız.png
 dump.json
+
+# Claude Code local files
+.claude/
+.agents/
+
+# Editor temp files
+*.tmp.*
+
+# Temp/debug files
+diff.txt
+diff_staged.txt
+status.txt
+*.pdf
+
+# Local test scripts
+test_api.py
+test_dp.py
+test_elsevier.py
+test_groq.py

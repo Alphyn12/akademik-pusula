@@ -16,7 +16,7 @@ class OpenAlexScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            email = self.get_config(None, "OPENALEX_EMAIL", "bariskirli@trakya.edu.tr")
+            email = self.get_config(None, "OPENALEX_EMAIL", "akademik-pusula-bot@example.com")
             headers = {'User-Agent': f'mailto:{email}'}
 
             if search_type == "DOI Numarası":
@@ -88,7 +88,8 @@ class OpenAlexScraper(BaseScraper):
                                 results.append({
                                     "Kaynak": self.name, "Yıl": year, "Başlık": title,
                                     "Yazarlar": authors, "Erişim Durumu": status,
-                                    "DOI": doi, "Link": link, "Özet": abstract
+                                    "DOI": doi, "Link": link, "Özet": abstract,
+                                    "Atıf Sayısı": item.get("cited_by_count", 0),
                                 })
                             except Exception as item_e:
                                 self.logger.warning(f"Error parsing OpenAlex item: {item_e}")

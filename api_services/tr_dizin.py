@@ -15,7 +15,14 @@ class TRDizinScraper(BaseScraper):
             start_year = filters.get('start_year', 1990)
             end_year = filters.get('end_year', 2026)
             
-            url = f"https://api.crossref.org/works?query.title={urllib.parse.quote(query)}&query.affiliation=turkey&rows=15"
+            url = (
+                f"https://api.crossref.org/works"
+                f"?query.title={urllib.parse.quote(query)}"
+                f"&query.affiliation=turkey"
+                f"&filter=from-pub-date:{start_year},until-pub-date:{end_year}"
+                f"&rows=25"
+                f"&sort=score&order=desc"
+            )
             headers = {'User-Agent': 'MakalePusulas/3.0 (mailto:engineering@example.com)'}
             
             async with aiohttp.ClientSession() as session:
@@ -43,9 +50,6 @@ class TRDizinScraper(BaseScraper):
                                             year = str(year_val)
                                         break
                                         
-                                if str(year).isdigit() and not (start_year <= int(year) <= end_year):
-                                    continue
-                                    
                                 doi = item.get('DOI', '-')
                                 is_oa = item.get('is-oa', False)
                                 status = "Açık" if is_oa else "Kilitli"

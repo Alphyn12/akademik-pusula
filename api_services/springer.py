@@ -24,8 +24,15 @@ class SpringerScraper(BaseScraper):
                     "data": []
                 }
                 
-            url = f"http://api.springernature.com/meta/v2/json?q={urllib.parse.quote(query)}&api_key={api_key}&p=15"
-            
+            url = (
+                f"http://api.springernature.com/meta/v2/json"
+                f"?q={urllib.parse.quote(query)}"
+                f"&api_key={api_key}"
+                f"&p=25"
+                f"&dateFrom={start_year}-01-01"
+                f"&dateTo={end_year}-12-31"
+            )
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=10) as response:
                     if response.status == 200:
@@ -34,12 +41,9 @@ class SpringerScraper(BaseScraper):
                         for record in records:
                             try:
                                 title = record.get('title', 'Bilinmiyor')
-                                
+
                                 pub_date = record.get('publicationDate', '')
                                 year = pub_date[:4] if len(pub_date) >= 4 and pub_date[:4].isdigit() else "Bilinmiyor"
-                                
-                                if str(year).isdigit() and not (start_year <= int(year) <= end_year):
-                                    continue
                                     
                                 creators_list = record.get('creators', [])
                                 authors = ", ".join([c.get('creator', '') for c in creators_list]) if creators_list else "Bilinmiyor"

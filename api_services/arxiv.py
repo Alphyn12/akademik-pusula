@@ -17,11 +17,12 @@ class ArxivScraper(BaseScraper):
             
             encoded_query = urllib.parse.quote(query)
             search_type = filters.get('search_type', 'Kavram/Kelime Arama')
+            date_filter = f"+AND+submittedDate:[{start_year}01010000+TO+{end_year}12312359]"
             if search_type == "Yazar Adı":
-                url = f"https://export.arxiv.org/api/query?search_query=au:{encoded_query}&start=0&max_results=20"
+                url = f"https://export.arxiv.org/api/query?search_query=au:{encoded_query}&start=0&max_results=30&sortBy=relevance&sortOrder=descending"
             else:
-                url = f"https://export.arxiv.org/api/query?search_query=ti:{encoded_query}+OR+abs:{encoded_query}&start=0&max_results=20"
-            
+                url = f"https://export.arxiv.org/api/query?search_query=ti:{encoded_query}+OR+abs:{encoded_query}{date_filter}&start=0&max_results=30&sortBy=relevance&sortOrder=descending"
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=30) as response:
                     if response.status == 200:
@@ -32,9 +33,6 @@ class ArxivScraper(BaseScraper):
                             try:
                                 title = entry.title.text.strip().replace('\n', ' ')
                                 year = entry.published.text[:4] if entry.published else "Bilinmiyor"
-                                
-                                if year.isdigit() and not (start_year <= int(year) <= end_year):
-                                    continue
                                     
                                 authors = ", ".join([author.find('name').text for author in entry.find_all('author')])
                                 doi = entry.find('arxiv:doi')
